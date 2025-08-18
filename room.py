@@ -67,7 +67,6 @@ class Blackjack(Room):
 
     def play_round(self) -> str:
         """play one round of blackjack and return game outcome"""
-        round = 0
         player_hand = [self.draw_card(), self.draw_card()]
         total = self.calculate_card(player_hand)
         bot_hand = [self.draw_card(), self.draw_card()]
@@ -105,17 +104,23 @@ class Blackjack(Room):
         #Determine winner
         print('')
         if total > 21 and bot_total > 21:
-            return "Both bust! You lose!"
+            self.points -= 20
+            return "Both bust! You lose 20 points"
         elif total > 21:
-            return "You busts! You lose."
+            self.points -= 20
+            return "You busts! You lose 20 points."
         elif bot_total > 21:
-            return "Bot busts! You win."
+            self.points += 100
+            return "Bot busts! You win 100 points"
         elif total == bot_total:
-            return "Tie! You lose!"
+            self.points -= 20
+            return "Tie! You lose 20 points!"
         elif total > bot_total:
-            return "You win!"
+            self.points += 100
+            return "You win 100 points!"
         else:
-            return "You lose!"
+            self.points -= 20
+            return "You lose 20 points!"
     
     def play(self):
         """Plays blackjack 3 rounds"""
