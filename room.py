@@ -1,5 +1,12 @@
 import time
 import cards
+
+INPUT_FUNCTION = input
+def prompt(question: str) -> str:
+    """This function behaves the same as input().
+    The pattern is to allow for automated testing."""
+    return INPUT_FUNCTION(question)
+
 class Room:
     """Parent class of all rooms. 
     Each room has a specific game."""
