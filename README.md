@@ -3,7 +3,7 @@
 ## Members
 
 - Yixin
-- Member 2
+- Greg
 - Member 3
 - Member 4
 
