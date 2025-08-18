@@ -82,7 +82,7 @@ class Blackjack(Room):
             break
 
         while len(player_hand) < 5:
-            redraw = input('Do you want to draw again? y/n ')
+            redraw = prompt('Do you want to draw again? y/n ')
             if redraw == 'y':
                 player_hand.append(self.draw_card())
                 total = self.calculate_card(player_hand)
@@ -162,7 +162,7 @@ class Baccarat(Room):
             print(f"Current Points: {points}\n Current Round: {rounds}")
                 
             #checks for validity
-            bet = input("What would you like to wager on? (Player, Banker, Tie - caps sensitive)")
+            bet = prompt("What would you like to wager on? (Player, Banker, Tie - caps sensitive)")
             if bet not in ["Player", "Banker", "Tie"]:
                 continue
 
