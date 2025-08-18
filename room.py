@@ -70,28 +70,6 @@ class Blackjack(Room):
         """displays the hand bot and player have"""
         print(f"{owner} hand: {', '.join(hand)} \n{owner} Total: {total}")
 
-    def determine_winner(self, total, bot_total):
-        """"""
-        if total > 21 and bot_total > 21:
-            self.points -= 100
-            return "Both bust! You win 100 points"
-        elif total > 21:
-            self.points -= 20
-            return "You busts! You lose 20 points."
-        elif bot_total > 21:
-            self.points += 100
-            return "Bot busts! You win 100 points"
-        elif total == bot_total:
-            self.points -= 20
-            return "Tie! You lose 20 points!"
-        elif total > bot_total:
-            self.points += 100
-            return "You win 100 points!"
-        else:
-            self.points -= 20
-            return "You lose 20 points!"
-
-
     def play_round(self) -> str:
         """play one round of blackjack and return game outcome"""
         player_hand = [self.draw_card(), self.draw_card()]
