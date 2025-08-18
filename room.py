@@ -58,60 +58,65 @@ class Blackjack(Room):
         """displays the hand bot and player have"""
         print(f"{owner} hand: {', '.join(hand)} \n{owner} Total: {total}")
 
+    def play_round(self) -> str:
+        """play one round of blackjack and return game outcome"""
+        round = 0
+        player_hand = [self.draw_card(), self.draw_card()]
+        total = self.calculate_card(player_hand)
+        bot_hand = [self.draw_card(), self.draw_card()]
+        bot_total = self.calculate_card(bot_hand)
+        print(f"Bot 1st card: {bot_hand[0]}")
+        print('')
+
+        #Calculating Player Result
+        self.show_hand('Your', player_hand, total)
+        if total > 21:
+            print("Bust!")
+            break
+
+        while len(player_hand) < 5:
+            redraw = input('Do you want to draw again? y/n ')
+            if redraw == 'y':
+                player_hand.append(self.draw_card())
+                total = self.calculate_card(player_hand)
+                self.show_hand('Your', player_hand, total)
+        
+            break
+        
+        #Calculating Bot Result
+        print('')
+        while bot_total < 17:
+            bot_hand.append(self.draw_card())
+            bot_total = self.calculate_card(bot_hand)
+            
+        if bot_total > 21:
+            self.show_hand('Bot', bot_hand, bot_total)
+            print("Bust!")
+        else:
+            self.show_hand('Bot', bot_hand, bot_total)
+
+        #Determine winner
+        print('')
+        if total > 21 and bot_total > 21:
+            return "Both bust! You lose!"
+        elif total > 21:
+            return "You busts! You lose."
+        elif bot_total > 21:
+            return "Bot busts! You win."
+        elif total == bot_total:
+            return "Tie! You lose!"
+        elif total > bot_total:
+            return "You win!"
+        else:
+            return "You lose!"
+    
     def play(self):
-        """implements the blackjack game"""
+        """Plays blackjack 3 rounds"""
         round = 0
         while round < 3:
-            player_hand = [self.draw_card(), self.draw_card()]
-            total = self.calculate_card(player_hand)
-            bot_hand = [self.draw_card(), self.draw_card()]
-            bot_total = self.calculate_card(bot_hand)
-            print(f"Bot 1st card: {bot_hand[0]}")
-            print('')
+            self.play_round()
+            round += 1
 
-            #Calculating Player Result
-            self.show_hand('Your', player_hand, total)
-            if total > 21:
-                print("Bust!")
-                break
-
-            while len(player_hand) < 5:
-                redraw = input('Do you want to draw again? y/n ')
-                if redraw == 'y':
-                    player_hand.append(self.draw_card())
-                    total = self.calculate_card(player_hand)
-                    self.show_hand('Your', player_hand, total)
-            
-                break
-
-            print('')
-            
-            #Calculating Bot Result
-            while bot_total < 17:
-                bot_hand.append(self.draw_card())
-                bot_total = self.calculate_card(bot_hand)
-                
-            if bot_total > 21:
-                self.show_hand('Bot', bot_hand, bot_total)
-                print("Bust!")
-            else:
-                self.show_hand('Bot', bot_hand, bot_total)
-
-            #Determine winner
-            print('')
-            if total > 21 and bot_total > 21:
-                return "Both bust! You lose!"
-            elif total > 21:
-                return "You busts! You lose."
-            elif bot_total > 21:
-                return "Bot busts! You win."
-            elif total == bot_total:
-                return "Tie! You lose!"
-            elif total > bot_total:
-                return "You win!"
-            else:
-                return "You lose!"
-        round += 1
 
 class Baccarat(Room):
     """Room with Baccarat.
