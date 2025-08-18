@@ -1,4 +1,11 @@
+import time
 import cards
+
+INPUT_FUNCTION = input
+def prompt(question: str) -> str:
+    """This function behaves the same as input().
+    The pattern is to allow for automated testing."""
+    return INPUT_FUNCTION(question)
 
 class Room:
     """Parent class of all rooms. 
@@ -123,14 +130,161 @@ class Baccarat(Room):
     Implements the Baccarat Game"""
     def __init__(self):
         super().__init__()
-        # self.VALUES = 
     
     def show(self) -> None:
         """Display room info."""
         print("Baccarat room (placeholder)")
 
     def play(self):
-        pass
+        """Baccarat game - rules:
+        There will be 2 hands dealt out called Player and Banker.
+        The person betting can choose whether to bet on Player, Banker, Tie.
+        Each hand will have a value calculated from the 2 cards. The winning hand
+        will be the hand in which its value is closest to nine. The other result is a Tie.
+        Hence, the player is essentially betting on the outcome of the comparison between both hands. 
+        Another rule is natural 8 and 9s. If either or both hands have natural 8s or 9s, 
+        the comparison will be made there. If there are no natural 8s or 9s, a third card will be drawn.
+        The comparison will be made then and the game loops.
+        """
+
+        #endings
+        game_over = False
+        points = 100
+        rounds = 1
+    
+        while not game_over or rounds > 3:
+            #base case
+            if points < 0:
+                game_over = True
+                break
+            
+            #displays current points and round
+            print(f"Current Points: {points}\n Current Round: {rounds}")
+                
+            #checks for validity
+            bet = input("What would you like to wager on? (Player, Banker, Tie - caps sensitive)")
+            if bet not in ["Player", "Banker", "Tie"]:
+                continue
+
+            #resets the winner to False
+            player_win = False
+            banker_win = False
+            tie = False
+        
+            
+            #displays starting hand
+            player_hand = [cards.generate_card(), cards.generate_card()]
+            banker_hand = [cards.generate_card(), cards.generate_card()]
+
+            #calculates starting value
+            player_value = self.calculate_value(player_hand)
+            banker_value = self.calculate_value(banker_hand)
+            
+            #displays hand
+            self.display_hand(player_hand, banker_hand, player_value, banker_value)
+
+            #condition for game to end early
+            if banker_value >= 8 or player_value >= 8:
+                if bet == "Player":
+                    if player_win == True:
+                        points += 20
+                        self.display_win()
+                    else:
+                        points -= 20
+                        self.display_loss()
+                    continue
+                elif bet == "Banker":
+                    if banker_win == True:
+                        points += 20
+                        self.display_win()
+                    else:
+                        points -= 20
+                        self.display_loss()
+                else:
+                    #more points are rewarded for winning with a tie
+                    if tie == True:
+                        points += 50
+                        self.display_win()
+                    else:
+                        points -= 20
+                        self.display_loss()
+
+            else:
+                #slows the game down to show that game has not ended
+                time.sleep(5)
+
+                #adds and displays the 3rd card
+                player_hand.append(cards.generate_card())
+                banker_hand.append(cards.generate_card())
+
+                #calculates new values
+                player_value = self.calculate_value(player_hand)
+                banker_value = self.calculate_value(banker_hand)
+
+                #displays the value
+                self.display_hand(player_hand, banker_hand, player_value, banker_value)
+
+                #calculating winner
+                if banker_value > player_value:
+                    banker_win = True
+                elif banker_value < player_value:
+                    player_value = True
+                else:
+                    tie = True
+
+            if bet == "Player":
+                if player_win == True:
+                    points += 20
+                    self.display_win()
+                else:
+                    points -= 20
+                    self.display_loss()
+                continue
+            elif bet == "Banker":
+                if banker_win == True:
+                    points += 20
+                    self.display_win()
+                else:
+                    points -= 20
+                    self.display_loss()
+            else:
+                #more points are rewarded for winning with a tie
+                if tie == True:
+                    points += 50
+                    self.display_win()
+                else:
+                    points -= 20
+                    self.display_loss()
+
+            #closer to base case
+            rounds += 1
+
+    def calculate_value(self, hand: list) -> int:
+        """calculates the values of the player's or dealer's hand
+        based on baccarat values
+        """
+        total_values = 0
+        for card in hand:
+            total_values += self.VALUES.get(card.value)
+        total_values = total_values % 10
+        return total_values
+
+    def display_loss(self) -> str:
+        print("You lost!")
+
+    def display_win(self) -> str:
+        print("You won!")
+    
+    def display_hand(self, hand1, hand2, value1, value2) -> str:
+        print("Player's hand and value")
+        for card in hand1:
+            print(card.as_string())
+        print(value1)
+        print("Banker's hand and value")
+        for card in hand2:
+            print(card.as_string())
+        print(value2)
+
 
 class Poker(Room):
     """Room with Poker.
@@ -145,3 +299,7 @@ class Poker(Room):
     def play(self):
         pass
 
+
+#testing
+baccarat = Baccarat()
+baccarat.play()
