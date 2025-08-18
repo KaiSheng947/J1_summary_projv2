@@ -12,8 +12,8 @@ class Blackjack(Room):
     """Room with blackjack.
     Implements the blackjack game"""
    
-    def init(self):
-        super().init()
+    def __init__(self):
+        super().__init__()
         
     def show(self) -> None:
         """Display room info and rules"""
