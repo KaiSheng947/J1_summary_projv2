@@ -18,69 +18,123 @@ class Room:
 class Blackjack(Room):
     """Room with blackjack.
     Implements the blackjack game"""
-    VALUES = { # Card values for this game.
-        1: 11, # Ace starts at 11 for blackjack
-        2: 2,
-        3: 3,
-        4: 4,
-        5: 5,
-        6: 6,
-        7: 7,
-        8: 8,
-        9: 9,
-        10: 10,
-        11: 10, # Jack
-        12: 10, # Queen
-        13: 10  # King
-    }
    
     def __init__(self):
         super().__init__()
         
-    
     def show(self) -> None:
         """Display room info and rules"""
         print("Blackjack room (placeholder)")
 
-    def draw_card(self) -> cards.Card:
-        """Randomly generates the values
-        and the suit symbol of a card 
-        for the class Card 
-        """
+    def draw_card(self) -> str:
+        """Randomly generates cards for player and bot"""
         # Not simulating a deck; just generating
-        # random cards
-        return cards.generate_card()
+        return cards.generate_card().as_string()
+    
+    def calculate_card(self, hand):
+        """Calculates card value in hand"""
+        # Card values for this game.
+        VALUES = {
+        'A': 11, # Ace starts at 11 for blackjack
+        '2': 2,
+        '3': 3,
+        '4': 4,
+        '5': 5,
+        '6': 6,
+        '7': 7,
+        '8': 8,
+        '9': 9,
+        '1': 10,
+        'J': 10, # Jack
+        'Q': 10, # Queen
+        'K': 10  # King
+    }
+        total = 0
+        aces = 0
+        for cards in hand:
+            total += VALUES[cards[5]]
+            # Account for aces as it can be 11 or 1
+            if cards[5] == 'A':
+                aces += 1
+                while total > 21 and aces:
+                    total -= 10
+                    aces -= 1
+        return total
 
-    def hand_value(self):
-        """Calculate value of cards"""
-        sum()
+    def show_hand(self, owner: str, hand: list[str], total: int):
+        """displays the hand bot and player have"""
+        print(f"{owner} hand: {', '.join(hand)} \n{owner} Total: {total}")
 
+    def play_round(self) -> str:
+        """play one round of blackjack and return game outcome"""
+        player_hand = [self.draw_card(), self.draw_card()]
+        total = self.calculate_card(player_hand)
+        bot_hand = [self.draw_card(), self.draw_card()]
+        bot_total = self.calculate_card(bot_hand)
+        print(f"Bot 1st card: {bot_hand[0]}")
+        print('')
+
+        #Calculating Player Result
+        self.show_hand('Your', player_hand, total)
+        if total > 21:
+            print("Bust!")
+            break
+
+        while len(player_hand) < 5:
+            redraw = prompt('Do you want to draw again? y/n ')
+            if redraw == 'y':
+                player_hand.append(self.draw_card())
+                total = self.calculate_card(player_hand)
+                self.show_hand('Your', player_hand, total)
+        
+            break
+        
+        #Calculating Bot Result
+        print('')
+        while bot_total < 17:
+            bot_hand.append(self.draw_card())
+            bot_total = self.calculate_card(bot_hand)
+            
+        if bot_total > 21:
+            self.show_hand('Bot', bot_hand, bot_total)
+            print("Bust!")
+        else:
+            self.show_hand('Bot', bot_hand, bot_total)
+
+        #Determine winner
+        print('')
+        if total > 21 and bot_total > 21:
+            self.points -= 20
+            return "Both bust! You lose 20 points"
+        elif total > 21:
+            self.points -= 20
+            return "You busts! You lose 20 points."
+        elif bot_total > 21:
+            self.points += 100
+            return "Bot busts! You win 100 points"
+        elif total == bot_total:
+            self.points -= 20
+            return "Tie! You lose 20 points!"
+        elif total > bot_total:
+            self.points += 100
+            return "You win 100 points!"
+        else:
+            self.points -= 20
+            return "You lose 20 points!"
+    
     def play(self):
-        """TODO: docstring"""
-        while self.player_score < 3:
-            player_hand = [self.draw_card(), self.draw_card()]
-            bot_hand = [self.draw_card(), self.draw_card()]
+        """Plays blackjack 3 rounds"""
+        round = 0
+        while round < 3:
+            self.play_round()
+            round += 1
+
 
 class Baccarat(Room):
     """Room with Baccarat.
     Implements the Baccarat Game"""
     def __init__(self):
         super().__init__()
-        self.VALUES = { # Card values for this game.
-        1: 1, 
-        2: 2,
-        3: 3,
-        4: 4,
-        5: 5,
-        6: 6,
-        7: 7,
-        8: 8,
-        9: 9,
-        10: 10,
-        11: 10, # Jack
-        12: 10, # Queen
-        13: 10  # King
-    }
     
     def show(self) -> None:
         """Display room info."""
@@ -113,7 +167,7 @@ class Baccarat(Room):
             print(f"Current Points: {points}\n Current Round: {rounds}")
                 
             #checks for validity
-            bet = input("What would you like to wager on? (Player, Banker, Tie - caps sensitive)")
+            bet = prompt("What would you like to wager on? (Player, Banker, Tie - caps sensitive)")
             if bet not in ["Player", "Banker", "Tie"]:
                 continue
 
