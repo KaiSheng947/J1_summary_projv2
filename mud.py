@@ -30,7 +30,7 @@ class Game:
         pass
 
     def save_game(self):
-        
+        pass
 
-    def quit_game(self, ):
-        if
+    def quit_game(self):
+        pass

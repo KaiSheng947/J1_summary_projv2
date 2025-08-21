@@ -1,0 +1,64 @@
+player_data:
+  items_owned: {}
+  points: 0
+rooms:
+  baccarat:
+    description: |
+        The velvet tables are torn, the cards brittle and yellowed. 
+        A cold draft circles the room as if unseen players are still seated. 
+        The faint clink of coins drops into nothingness, but no winnings remain. 
+        A spectral dealer gestures at the cards—you must place your bet.
+    rules: |
+        Baccarat game - Rules:
+        1. There will be 2 hands dealt out called Player and Banker.
+        2. The person betting can choose whether to bet on Player, Banker, Tie.
+        3. Each hand will have a value calculated from the 2 cards. 
+        4. The winning hand will be the hand in which its value is closest to nine. The other result is a Tie.
+        5. Hence, the player is essentially betting on the outcome of the comparison between both hands. 
+        6. Another rule is natural 8 and 9s. If either or both hands have natural 8s or 9s, the comparison is made to find the winner.
+        7. If there are no natural 8s or 9s, a third card will be drawn and the comparison is made. The game ends.
+        
+  blackjack:
+    description: |
+            The blackjack tables are coated in dust, cards frozen mid-game as if abandoned in terror. 
+            A faint whisper of shuffling chips echoes, though no one is there. 
+            The dealer’s chair rocks slowly on its own. 
+            A skeletal hand pushes a stack of chips toward you—you’re expected to play.
+    rules: |
+            Room 1: Blackjack - Rules
+            1. You and the bot will receive two cards each. You will get to see one of the bot’s cards.
+            2. The goal is to get a hand closest to 21 without going over it. Going over 21 is called a bust.
+            3. Hand Values: Cards J, Q, K are worth 10, and Aces can be 1 or 11.
+            4. During your turn, you can choose whether to draw another card or not. The bot will draw if their hand is below 17.
+            5. Whoever’s hand is closer to 21 without going over it wins.
+            6. If the dealer busts, the player wins. If it’s a tie, the player loses.
+  poker:
+    description: |
+                  Cigarette smoke lingers in the empty air, though the room has been sealed for years. 
+                  The poker chips rattle faintly, stacking and unstacking themselves in the silence. \
+                  Shadows lean closer around the green felt. 
+                  A ghostly voice rasps, “Your seat is waiting.”
+    rules: |
+            1. The Player and Dealer is dealt 3 cards
+            2. The cards are then compared using the rules of poker
+            3. The winner is made
+  russian_roulette:
+    description: |
+                  A single chair waits beneath a flickering light, its shadow stretching unnaturally long. 
+                  On the table rests a revolver, polished as if freshly cleaned, six empty glasses arranged beside it like spectators. 
+                  The air tastes metallic, every breath heavy with dread. 
+                  An unseen presence loads a single round, the click echoing far too loud. The weapon slides toward you across the table—you are expected to take your turn.
+    rules: |
+            1. The gun has six chambers and x amount of bullets
+            2. You and the Pit Boss will each take turns shooting yourself with the gun
+            3. Don't Die
+text:
+  ACTION_PROMPT: |
+                  What would you like to do?
+  COMMAND_ERROR_MSG: |
+                      System does not recognise input!
+  EXIT_MSG: |
+              The game is over, thanks for playing!
+  GAME_LOSE: ''
+  GAME_WIN: ''
+  WELCOME: Welcome to the Casino!
