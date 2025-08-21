@@ -333,18 +333,90 @@ class Baccarat(Room):
             print(card.as_string())
         print(value2)
 
-class Poker(Room):
-    """Room with Poker.
-    Implements the Poker Game"""
+class PokerRoom(Room):
+    # Poker values dictionary inside the class
+    POKER_VALUES = {
+        1: 14,   # Ace counts as highest
+        2: 2,
+        3: 3,
+        4: 4,
+        5: 5,
+        6: 6,
+        7: 7,
+        8: 8,
+        9: 9,
+        10: 10,
+        11: 11,  # Jack
+        12: 12,  # Queen
+        13: 13,  # King
+    }
+
     def __init__(self):
-        super().__init__()
+        super().__init__()  # initialize points, player_score, bot_score
 
-    def show(self) -> None:
-        """Display room info."""
-        print("Poker room (placeholder)")
+    def _create_deck(self):
+        return [Card(suit, value) for suit in SUIT_SYMBOL for value in NAMES]
 
-    def play(self):
-        pass
+    def _deal_cards(self, deck, num=3):
+        return [deck.pop() for _ in range(num)]
+
+    def _evaluate_hand(self, hand):
+        values = [card.value for card in hand]
+        counts = {v: values.count(v) for v in set(values)}
+
+        if 3 in counts.values():
+            v = [k for k, c in counts.items() if c == 3][0]
+            return (3, f"Three of a kind ({NAMES[v]})")
+
+        if 2 in counts.values():
+            v = [k for k, c in counts.items() if c == 2][0]
+            return (2, f"Pair of {NAMES[v]}s")
+
+        high = max(values, key=lambda v: self.POKER_VALUES[v])
+        return (1, f"High card {NAMES[high]}")
+
+    def play(self, score=0) -> int:
+        """Plays one round of poker. Updates player_score and bot_score.
+        Returns net points gained by the player (player_score - bot_score)."""
+        deck = self._create_deck()
+        random.shuffle(deck)
+
+        player_hand = self._deal_cards(deck, 3)
+        bot_hand = self._deal_cards(deck, 3)
+
+        player_score, player_desc = self._evaluate_hand(player_hand)
+        bot_score, bot_desc = self._evaluate_hand(bot_hand)
+
+        print("\n--- Poker Round ---")
+        print("Your hand: " + " ".join([c.as_string() for c in player_hand]) + f" → {player_desc}")
+        print("Bot hand: " + " ".join([c.as_string() for c in bot_hand]) + f" → {bot_desc}")
+
+        # Update scores
+        self.player_score += player_score
+        self.bot_score += bot_score
+
+        if player_score > bot_score:
+            print(f"You win this round! (+{player_score})")
+        elif bot_score > player_score:
+            print(f"Bot wins this round! (+{bot_score} to bot)")
+        else:
+            print(f"This round is a tie! (+{player_score} each)")
+
+        # Points gained for this round
+        net_gain = player_score - bot_score
+        self.points += net_gain
+        print(f"Net points this round: {net_gain}")
+        print(f"Total player score: {self.player_score}, Bot score: {self.bot_score}\n")
+
+        return net_gain
+
+
+# --- Example run ---
+if __name__ == "__main__":
+    room = PokerRoom()
+    for _ in range(3):
+        room.play()
+
 
 
 # #testing
