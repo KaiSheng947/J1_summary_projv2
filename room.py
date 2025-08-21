@@ -100,7 +100,7 @@ class Baccarat(Room):
 
         #endings
         game_over = False
-        points = 100
+        points = 0
         rounds = 1
     
         while not game_over and rounds < 4:
@@ -135,9 +135,9 @@ class Baccarat(Room):
             self.display_hand(player_hand, banker_hand, player_value, banker_value)
 
             if banker_value > player_value:
-                    banker_win = True
+                banker_win = True
             elif banker_value < player_value:
-                player_value = True
+                player_win = True
             else:
                 tie = True
 
@@ -186,7 +186,7 @@ class Baccarat(Room):
                 if banker_value > player_value:
                     banker_win = True
                 elif banker_value < player_value:
-                    player_value = True
+                    player_win = True
                 else:
                     tie = True
 
@@ -215,6 +215,9 @@ class Baccarat(Room):
 
             #closer to base case
             rounds += 1
+        
+        return points
+        
 
     def calculate_value(self, hand: list) -> int:
         """calculates the values of the player's or dealer's hand
