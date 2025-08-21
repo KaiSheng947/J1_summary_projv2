@@ -140,8 +140,23 @@ class Blackjack(Room):
 class Baccarat(Room):
     """Room with Baccarat.
     Implements the Baccarat Game"""
-    def __init__(self):
-        super().__init__()
+    def _init_(self):
+        super()._init_()
+        self.VALUES = { # Card values for this game.
+        1: 1, 
+        2: 2,
+        3: 3,
+        4: 4,
+        5: 5,
+        6: 6,
+        7: 7,
+        8: 8,
+        9: 9,
+        10: 10,
+        11: 10, # Jack
+        12: 10, # Queen
+        13: 10  # King
+    }
     
     def show(self) -> None:
         """Display room info."""
@@ -161,10 +176,10 @@ class Baccarat(Room):
 
         #endings
         game_over = False
-        points = 100
+        points = 0
         rounds = 1
     
-        while not game_over or rounds > 3:
+        while not game_over and rounds < 4:
             #base case
             if points < 0:
                 game_over = True
@@ -195,6 +210,13 @@ class Baccarat(Room):
             #displays hand
             self.display_hand(player_hand, banker_hand, player_value, banker_value)
 
+            if banker_value > player_value:
+                banker_win = True
+            elif banker_value < player_value:
+                player_win = True
+            else:
+                tie = True
+
             #condition for game to end early
             if banker_value >= 8 or player_value >= 8:
                 if bet == "Player":
@@ -204,7 +226,6 @@ class Baccarat(Room):
                     else:
                         points -= 20
                         self.display_loss()
-                    continue
                 elif bet == "Banker":
                     if banker_win == True:
                         points += 20
@@ -223,6 +244,7 @@ class Baccarat(Room):
 
             else:
                 #slows the game down to show that game has not ended
+                print("No natural 8s or 9s!")
                 time.sleep(5)
 
                 #adds and displays the 3rd card
@@ -240,36 +262,38 @@ class Baccarat(Room):
                 if banker_value > player_value:
                     banker_win = True
                 elif banker_value < player_value:
-                    player_value = True
+                    player_win = True
                 else:
                     tie = True
 
-            if bet == "Player":
-                if player_win == True:
-                    points += 20
-                    self.display_win()
+                if bet == "Player":
+                    if player_win == True:
+                        points += 20
+                        self.display_win()
+                    else:
+                        points -= 20
+                        self.display_loss()
+                elif bet == "Banker":
+                    if banker_win == True:
+                        points += 20
+                        self.display_win()
+                    else:
+                        points -= 20
+                        self.display_loss()
                 else:
-                    points -= 20
-                    self.display_loss()
-                continue
-            elif bet == "Banker":
-                if banker_win == True:
-                    points += 20
-                    self.display_win()
-                else:
-                    points -= 20
-                    self.display_loss()
-            else:
-                #more points are rewarded for winning with a tie
-                if tie == True:
-                    points += 50
-                    self.display_win()
-                else:
-                    points -= 20
-                    self.display_loss()
+                    #more points are rewarded for winning with a tie
+                    if tie == True:
+                        points += 50
+                        self.display_win()
+                    else:
+                        points -= 20
+                        self.display_loss()
 
             #closer to base case
             rounds += 1
+        
+        return points
+        
 
     def calculate_value(self, hand: list) -> int:
         """calculates the values of the player's or dealer's hand
@@ -281,13 +305,21 @@ class Baccarat(Room):
         total_values = total_values % 10
         return total_values
 
-    def display_loss(self) -> str:
+    def display_loss(self) -> None:
+        """Displays a message when the better loses
+        """
         print("You lost!")
 
-    def display_win(self) -> str:
+    def display_win(self) -> None:
+        """Displays a message when the better wins
+        """
         print("You won!")
     
     def display_hand(self, hand1, hand2, value1, value2) -> str:
+        """displays both the Player's and Banker's Hand,
+        hand1 and value1 are the Player's hands and hand's value respectively,
+        hand2 and value2 are the Banker's hands and hand's value respectively.
+        """
         print("Player's hand and value")
         for card in hand1:
             print(card.as_string())
@@ -295,8 +327,7 @@ class Baccarat(Room):
         print("Banker's hand and value")
         for card in hand2:
             print(card.as_string())
-        print(value2)
-
+        print(value2)
 
 class Poker(Room):
     """Room with Poker.
