@@ -5,6 +5,8 @@ from room import (
     Room
 )
 
+import json
+
 class Game:
     def __init__(self):
         pass
@@ -26,3 +28,9 @@ class Game:
 
     def is_over(self) -> bool:
         pass
+
+    def save_game(self):
+        
+
+    def quit_game(self, ):
+        if
