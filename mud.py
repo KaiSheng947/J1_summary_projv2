@@ -21,5 +21,6 @@ class Game:
         for room_class in self.rooms:
             room = room_class()
             delta_score = room.play(score)
+            score += delta_score
             print(f"You've completed this trial...")
             print(f"Your current score: {score}, ({delta_score} in this room)")

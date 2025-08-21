@@ -18,6 +18,7 @@ class Room:
     def play(score: int) -> int:
         """Plays the room. Returns the score gain/loss due to the game.
         Eg. if you gained 20, return 20. If you lost 20, return -20."""
+        raise NotImplementedError
 
 class Blackjack(Room):
     """Room with blackjack.
@@ -127,7 +128,7 @@ class Blackjack(Room):
             self.points -= 20
             return "You lose 20 points!"
     
-    def play(self):
+    def play(self, _):
         """Plays blackjack 3 rounds"""
         self.show()
         for i in range(3):
@@ -140,9 +141,7 @@ class Blackjack(Room):
 class Baccarat(Room):
     """Room with Baccarat.
     Implements the Baccarat Game"""
-    def _init_(self):
-        super()._init_()
-        self.VALUES = { # Card values for this game.
+    VALUES = { # Card values for this game.
         1: 1, 
         2: 2,
         3: 3,
@@ -157,12 +156,14 @@ class Baccarat(Room):
         12: 10, # Queen
         13: 10  # King
     }
+    def _init_(self):
+        super()._init_()
     
     def show(self) -> None:
         """Display room info."""
         print("Baccarat room (placeholder)")
 
-    def play(self):
+    def play(self, _):
         """Baccarat game - rules:
         There will be 2 hands dealt out called Player and Banker.
         The person betting can choose whether to bet on Player, Banker, Tie.
@@ -179,7 +180,7 @@ class Baccarat(Room):
         points = 0
         rounds = 1
     
-        while not game_over and rounds < 4:
+        while not game_over and rounds <= 3:
             #base case
             if points < 0:
                 game_over = True
@@ -189,7 +190,7 @@ class Baccarat(Room):
             print(f"Current Points: {points}\n Current Round: {rounds}")
                 
             #checks for validity
-            bet = prompt("What would you like to wager on? (Player, Banker, Tie - caps sensitive)")
+            bet = prompt("What would you like to wager on? (Player, Banker, Tie - caps sensitive): ")
             if bet not in ["Player", "Banker", "Tie"]:
                 continue
 
@@ -245,7 +246,10 @@ class Baccarat(Room):
             else:
                 #slows the game down to show that game has not ended
                 print("No natural 8s or 9s!")
-                time.sleep(5)
+                for i in range(5):
+                    print(".", end = "", flush = True)
+                    time.sleep(0.5)
+                print("")
 
                 #adds and displays the 3rd card
                 player_hand.append(cards.generate_card())
@@ -327,7 +331,7 @@ class Baccarat(Room):
         print("Banker's hand and value")
         for card in hand2:
             print(card.as_string())
-        print(value2)
+        print(value2)
 
 class Poker(Room):
     """Room with Poker.
