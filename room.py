@@ -14,6 +14,10 @@ class Room:
         self.points = 0
         self.player_score = 0
         self.bot_score = 0
+    
+    def play(score: int) -> int:
+        """Plays the room. Returns the score gain/loss due to the game.
+        Eg. if you gained 20, return 20. If you lost 20, return -20."""
 
 class Blackjack(Room):
     """Room with blackjack.
@@ -23,13 +27,15 @@ class Blackjack(Room):
         
     def show(self) -> None:
         """Display room info and how to play"""
-        print("""Room 1: Blackjack
-    1. You and the bot will receive two cards each. You will get to see one of the bot’s cards.
-    2. The goal is to get a hand closest to 21 without going over it. Going over 21 is called a bust.
-    3. Hand Values: Cards J, Q, K are worth 10, and Aces can be 1 or 11.
-    4. During your turn, you can choose whether to draw another card or not. The bot will draw if their hand is below 17.
-    5. Whoever’s hand is closer to 21 without going over it wins. 
-    6. If the dealer busts, the player wins. If it’s a tie, the player loses.""")
+        print(
+            "Room 1: Blackjack\n"
+            "1. You and the bot will receive two cards each. You will get to see one of the bot’s cards.\n"
+            "2. The goal is to get a hand closest to 21 without going over it. Going over 21 is called a bust.\n"
+            "3. Hand Values: Cards J, Q, K are worth 10, and Aces can be 1 or 11.\n"
+            "4. During your turn, you can choose whether to draw another card or not. The bot will draw if their hand is below 17.\n"
+            "5. Whoever’s hand is closer to 21 without going over it wins.\n"
+            "6. If the dealer busts, the player wins. If it’s a tie, the player loses."
+        )
 
     def draw_card(self) -> str:
         """Randomly generates cards for player and bot"""
@@ -110,7 +116,7 @@ class Blackjack(Room):
             return "Bot busts! You win 100 points"
         elif total > 21:
             self.points -= 20
-            return "You busts! You lose 20 points."
+            return "You bust! You lose 20 points."
         elif total == bot_total:
             self.points -= 20
             return "Tie! You lose 20 points!"
@@ -123,12 +129,13 @@ class Blackjack(Room):
     
     def play(self):
         """Plays blackjack 3 rounds"""
+        self.show()
         for i in range(3):
             print('')
-            prompt(f'Round {i+1}')
+            prompt(f'Round {i+1}! [Press enter to continue]')
             print(self.play_round())
             print('')
-        return "Total points:" + str(self.points)
+        return self.points
 
 class Baccarat(Room):
     """Room with Baccarat.
