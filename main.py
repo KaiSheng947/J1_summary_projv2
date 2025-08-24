@@ -1,22 +1,6 @@
 import mud
 # import data
 
-def show_intro():
-    """Display the game intro"""
-    ...
-
-def is_gameover():
-    """Indicates end of game"""
-    ...
-
-def defeat():
-    """Display the defeat screen"""
-    print("Try again")
-
-def victory():
-    """Display the victory screen"""
-    print("Congratulations, you've won!")
-
 def run_game():
     """Runs the game."""
     game = mud.Game()
