@@ -190,7 +190,9 @@ class Baccarat(Room):
             print(f"Current Points: {points}\n Current Round: {rounds}")
                 
             #checks for validity
+
             bet = prompt("What would you like to wager on? (Player, Banker, Tie - caps sensitive): ")
+
             if bet not in ["Player", "Banker", "Tie"]:
                 continue
 
@@ -246,6 +248,7 @@ class Baccarat(Room):
             else:
                 #slows the game down to show that game has not ended
                 print("No natural 8s or 9s!")
+
                 for i in range(5):
                     print(".", end = "", flush = True)
                     time.sleep(0.5)
