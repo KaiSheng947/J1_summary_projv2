@@ -1,21 +1,26 @@
 import mud
 # import data
 
+import yaml
+
+with open("text.yaml", "r") as file:
+    config = yaml.safe_load(file)
+
 def show_intro():
     """Display the game intro"""
-    ...
+    print(config["text"]["WELCOME"])
 
 def is_gameover():
     """Indicates end of game"""
-    ...
+    print(config["text"]["EXIT_MSG"])
 
 def defeat():
     """Display the defeat screen"""
-    print("Try again")
+    print(config["text"]["GAME_LOSE"])
 
 def victory():
     """Display the victory screen"""
-    print("Congratulations, you've won!")
+    print(config["text"]["GAME_LOSE"])
 
 def run_game():
     """Runs the game."""
