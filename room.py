@@ -1,5 +1,6 @@
 import time
 import cards
+import random
 
 class InputOverride:
     def __init__(self, override):
@@ -431,6 +432,51 @@ class PokerRoom(Room):
 
         return net_gain
 
+class Roulette(Room):
+    def __init__(self):
+        super().__init__()
+
+    def play(self, current_score: int) -> int:
+        powerups = self.shop(current_score)
+
+        slots = int(prompt("Enter the number of slots your gun has. Usually 6: "))
+        spin = int(prompt("Enter the number of spins that happens. Notice this does not affect your chances: "))
+        roulette = self.roulette(spin, slots)
+
+        if roulette == "0":
+            print("Oh no u got shot and died")
+        else:
+            print("wow u survived nice okay")
+        
+        return -31415692 # Find a way to return if you won or lost?
+        
+    def shop(self, current_score: int) -> list:
+        """The shop to buy powerups for russian roulette. Returns powerups."""
+        print(f"U have {current_score} points. Imagine this is a shop & u buy powerups.")
+        return ["imagine this is a powerup"]
+
+    def decay(self, iter_num: int, increase: float = 0.05) -> int:
+        """A decay function for the turning in the barrel"""
+        for i in range(iter_num):
+            yield (i+1) * 0.05
+
+    def roulette(self, iter_num, slots) -> str:
+        """An animated russian roulette"""
+        # Create barrel
+        barrel = ['.'] * slots
+        # Add bullet
+        bullet_slot = random.randint(1, slots)
+        barrel[bullet_slot - 1] = "0"
+
+        print(" V")
+        for delay in self.decay(iter_num):
+            print("\r[" + "] [".join(barrel) + "]", end = '', flush = True)
+            time.sleep(delay) # Delay
+            barrel.append(barrel.pop(0)) # Roll the barrel
+        
+        print("") # End the output
+
+        return barrel[0] 
 
 # --- Example run ---
 if __name__ == "__main__":
