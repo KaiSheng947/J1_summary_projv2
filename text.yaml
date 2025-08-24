@@ -59,6 +59,14 @@ text:
                       System does not recognise input!
   EXIT_MSG: |
               The game is over, thanks for playing!
-  GAME_LOSE: ''
-  GAME_WIN: ''
-  WELCOME: Welcome to the Casino!
+  GAME_LOSE: | 
+              A hush falls over the ruined hall. 
+              The undead dealers stand still, their empty sockets fixed on you. 
+              Then, as one, they laugh—a hollow, rattling chorus—as cards slice through the air like blades. 
+              You collapse, claimed by the house, your name etched forever into its ledger of the damned.
+  GAME_WIN: |
+              The silence breaks—not with laughter, but with retreat. 
+              The figures that surrounded you shudder, crack, and collapse, their bones scattering like brittle coins across the floor. 
+              The air clears, heavy no longer, and you stand alone where death once ruled.
+  WELCOME: |
+            Welcome to the Casino!
