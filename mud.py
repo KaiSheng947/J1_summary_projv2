@@ -1,7 +1,6 @@
 from room import (
     Blackjack,
     Baccarat,
-    Poker,
     Room
 )
 

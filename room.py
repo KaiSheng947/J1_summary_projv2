@@ -1,6 +1,21 @@
 import time
 import cards
 
+class InputOverride:
+    def __init__(self, override):
+        self.original = None
+        self.override = override
+    
+    def __enter__(self):
+        global INPUT_FUNCTION
+        self.original = INPUT_FUNCTION
+        INPUT_FUNCTION = self.override
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        global INPUT_FUNCTION
+        INPUT_FUNCTION = self.original
+
 INPUT_FUNCTION = input
 def prompt(question: str) -> str:
     """This function behaves the same as input().
@@ -94,7 +109,10 @@ class Blackjack(Room):
                 player_hand.append(self.draw_card())
                 total = self.calculate_card(player_hand)
                 self.show_hand('Your', player_hand, total)
+            elif redraw == 'n':
+                break
             else:
+                print("Hmm... That isnt a y or an n! The dungeon assumes you meant n.")
                 break
         
         #Calculating Bot Result
