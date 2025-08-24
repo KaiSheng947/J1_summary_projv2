@@ -1,13 +1,14 @@
 from room import (
     Blackjack,
     Baccarat,
+    Roulette,
     Room
 )
 
 import json
 
 class Game:
-    rooms = [Blackjack, Baccarat, ...]
+    rooms = [Blackjack, Baccarat, Roulette] # Note: supposed to have poker lol
     def __init__(self):
         pass
 
