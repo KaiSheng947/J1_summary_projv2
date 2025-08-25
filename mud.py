@@ -5,7 +5,7 @@ from room import (
     Room
 )
 
-
+import time
 import yaml
 
 with open("text.yaml", "r") as file:
@@ -64,7 +64,7 @@ class Game:
         """
         room_list = ["blackjack", "baccarat", "poker", "russian_roulette"]
         score = 0
-        
+
         #displays intro
         self.show_intro()
 
