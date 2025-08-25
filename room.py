@@ -1,5 +1,9 @@
 import time
 import cards
+import yaml
+
+with open("text.yaml", "r") as file:
+    config = yaml.safe_load(file)
 
 INPUT_FUNCTION = input
 def prompt(question: str) -> str:
@@ -27,16 +31,14 @@ class Blackjack(Room):
         super().__init__()
         
     def show(self) -> None:
-        """Display room info and how to play"""
-        print(
-            "Room 1: Blackjack\n"
-            "1. You and the bot will receive two cards each. You will get to see one of the bot’s cards.\n"
-            "2. The goal is to get a hand closest to 21 without going over it. Going over 21 is called a bust.\n"
-            "3. Hand Values: Cards J, Q, K are worth 10, and Aces can be 1 or 11.\n"
-            "4. During your turn, you can choose whether to draw another card or not. The bot will draw if their hand is below 17.\n"
-            "5. Whoever’s hand is closer to 21 without going over it wins.\n"
-            "6. If the dealer busts, the player wins. If it’s a tie, the player loses."
-        )
+        """Display room info."""
+        print(config["blackjack"]["description"])
+        for i in range(5):
+                    print(".", end = "", flush = True)
+                    time.sleep(0.5)
+                    print("")
+        print(config["blackjack"]["rules"])
+
 
     def draw_card(self) -> str:
         """Randomly generates cards for player and bot"""
@@ -161,7 +163,12 @@ class Baccarat(Room):
     
     def show(self) -> None:
         """Display room info."""
-        print("Baccarat room (placeholder)")
+        print(config["baccarat"]["description"])
+        for i in range(5):
+                    print(".", end = "", flush = True)
+                    time.sleep(0.5)
+                    print("")
+        print(config["baccarat"]["rules"])
 
     def play(self, _):
         """Baccarat game - rules:
@@ -356,6 +363,15 @@ class PokerRoom(Room):
 
     def __init__(self):
         super().__init__()  # initialize points, player_score, bot_score
+
+    def show(self) -> None:
+        """Display room info."""
+        print(config["poker"]["description"])
+        for i in range(5):
+                    print(".", end = "", flush = True)
+                    time.sleep(0.5)
+                    print("")
+        print(config["poker"]["rules"])
 
     def _create_deck(self):
         return [Card(suit, value) for suit in SUIT_SYMBOL for value in NAMES]
