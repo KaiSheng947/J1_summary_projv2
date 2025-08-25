@@ -437,11 +437,12 @@ class Roulette(Room):
         super().__init__()
 
     def play(self, current_score: int) -> int:
-        powerups = self.shop(current_score)
+        slots, max_rotations = self.shop(current_score)
 
-        slots = int(prompt("Enter the number of slots your gun has. Usually 6: "))
-        spin = int(prompt("Enter the number of spins that happens. Notice this does not affect your chances: "))
-        roulette = self.roulette(spin, slots)
+        print(f"Your gun has {slots} slots, and can rotate at most {max_rotations} times...")
+        rotations = random.randint(max_rotations // 3, max_rotations)
+
+        roulette = self.roulette(rotations, slots)
 
         if roulette == "0":
             print("Oh no u got shot and died")
@@ -452,8 +453,46 @@ class Roulette(Room):
         
     def shop(self, current_score: int) -> list:
         """The shop to buy powerups for russian roulette. Returns powerups."""
-        print(f"U have {current_score} points. Imagine this is a shop & u buy powerups.")
-        return ["imagine this is a powerup"]
+        slots = 6
+        max_rotations = 30
+
+        # Powerups: 
+        # 1. Buy more slots
+        # 2. Buy less rotations
+
+        # See graphs here: https://www.desmos.com/calculator/ouyracensx
+        # Each cost increases
+        next_slot_cost = lambda: 10 + 3 * (slots - 6) # First buy is 10pts, incereases by 3 per buy.
+        # Increasing cost for each additional upgrade, cost 900 to completely eliminate risk.
+        next_rotation_cost = lambda: round(30 + 1/(0.005 * (max_rotations - 1) + 0.0001) - (1/4) * (max_rotations - 1))
+
+        while True:
+            print("Welcome to the shop. you can buy these: ")
+            slot_cost = next_slot_cost()
+            print(f"1) ${slot_cost}: Increase number of slots from {slots} -> {slots+1}.")
+
+            rotation_cost = next_rotation_cost()
+            print(f"2) ${rotation_cost}: Decrease max number of rotations from {max_rotations} -> {max_rotations-1}")
+
+            print(f"Your balance is: ${current_score}")
+            if current_score < slot_cost and current_score < rotation_cost:
+                print(f"Whoops! You're too poor to buy anything more.")
+                break
+            choice = prompt("Which do you want to buy? Enter anything which is not 1 or 2 to exit the shop:\n> ")
+
+            if choice == "1":
+                print("You bought: one more slot!")
+                slots += 1
+                current_score -= slot_cost
+            elif choice == "2":
+                print("You bought: one less rotation!")
+                max_rotations -= 1
+                current_score -= rotation_cost
+            else:
+                print("You exit the shop.")
+                break
+    
+        return slots, max_rotations
 
     def decay(self, iter_num: int, increase: float = 0.05) -> int:
         """A decay function for the turning in the barrel"""
@@ -469,10 +508,12 @@ class Roulette(Room):
         barrel[bullet_slot - 1] = "0"
 
         print(" V")
+
+        print("\r[" + "] [".join(barrel) + "]", end = '', flush = True)
         for delay in self.decay(iter_num):
+            barrel.append(barrel.pop(0)) # Roll the barrel
             print("\r[" + "] [".join(barrel) + "]", end = '', flush = True)
             time.sleep(delay) # Delay
-            barrel.append(barrel.pop(0)) # Roll the barrel
         
         print("") # End the output
 
@@ -480,11 +521,8 @@ class Roulette(Room):
 
 # --- Example run ---
 if __name__ == "__main__":
-    room = PokerRoom()
-    for _ in range(3):
-        room.play()
-
-
+    room = Roulette()
+    room.play(100000)
 
 # #testing
 # baccarat = Baccarat()
