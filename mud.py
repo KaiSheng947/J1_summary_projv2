@@ -5,7 +5,12 @@ from room import (
     Room
 )
 
-import json
+
+import yaml
+
+with open("text.yaml", "r") as file:
+    config = yaml.safe_load(file)
+
 
 class Game:
     rooms = [Blackjack, Baccarat, ...]
@@ -36,18 +41,44 @@ class Game:
     def quit_game(self):
         pass
 
-    def show_intro(self) -> None:
-        """Show the intro message to the game"""
-        print("Welcome to the \033[1;5;4;3;31md u n g e o n\033[0m")
-        print("Hope you get through your three trials...")
+    def show_intro():
+        """Display the game intro"""
+        print(config["text"]["WELCOME"])
+
+    def is_gameover():
+        """Indicates end of game"""
+        print(config["text"]["EXIT_MSG"])
+
+    def defeat():
+        """Display the defeat screen"""
+        print(config["text"]["GAME_LOSE"])
+
+    def victory():
+        """Display the victory screen"""
+        print(config["text"]["GAME_LOSE"])
+
     
+
     def play(self) -> None:
-        self.show_intro()
+        """main game loop
+        """
+        room_list = ["blackjack", "baccarat", "poker", "russian_roulette"]
         score = 0
-        for room_class in self.rooms:
+        
+        #displays intro
+        self.show_intro()
+
+
+        for current_room, room_class in enumerate(self.rooms):
             room = room_class()
+            room.show()
             delta_score = room.play(score)
             score += delta_score
-            print(f"You've completed this trial...")
+            print(config[room_list[current_room]]["GAME_WIN"])
             print(f"Your current score: {score}, ({delta_score} in this room)")
+            print(config["TRANSITION"])
+            for i in range(5):
+                    print(".", end = "", flush = True)
+                    time.sleep(0.5)
+            print("")          
 
