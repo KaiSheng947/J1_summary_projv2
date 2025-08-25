@@ -1,6 +1,7 @@
 from room import (
     Blackjack,
     Baccarat,
+    Poker,
     Roulette,
     Room
 )
@@ -8,7 +9,7 @@ from room import (
 import json
 
 class Game:
-    rooms = [Blackjack, Baccarat, Roulette] # Note: supposed to have poker lol
+    rooms = [Blackjack, Baccarat, Poker, Roulette] # Note: supposed to have poker lol
     def __init__(self):
         pass
 

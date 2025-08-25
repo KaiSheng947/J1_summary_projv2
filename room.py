@@ -2,6 +2,8 @@ import time
 import cards
 import random
 
+from cards import Card, NAMES, SUIT_SYMBOL
+
 class InputOverride:
     def __init__(self, override):
         self.original = None
@@ -84,9 +86,9 @@ class Blackjack(Room):
             # Account for aces as it can be 11 or 1
             if cards[5] == 'A':
                 aces += 1
-                while total > 21 and aces:
-                    total -= 10
-                    aces -= 1
+        while total > 21 and aces:
+            total -= 10
+            aces -= 1
         return total
 
     def show_hand(self, owner: str, hand: list[str], total: int):
@@ -355,7 +357,7 @@ class Baccarat(Room):
             print(card.as_string())
         print(value2)
 
-class PokerRoom(Room):
+class Poker(Room):
     # Poker values dictionary inside the class
     POKER_VALUES = {
         1: 14,   # Ace counts as highest
