@@ -13,7 +13,7 @@ with open("text.yaml", "r") as file:
 
 
 class Game:
-    rooms = [Blackjack, Baccarat, ...]
+    rooms = [Blackjack, Baccarat, Poker]
     def __init__(self):
         pass
 
@@ -41,19 +41,19 @@ class Game:
     def quit_game(self):
         pass
 
-    def show_intro():
+    def show_intro(self):
         """Display the game intro"""
         print(config["text"]["WELCOME"])
 
-    def is_gameover():
+    def is_gameover(self):
         """Indicates end of game"""
         print(config["text"]["EXIT_MSG"])
 
-    def defeat():
+    def defeat(self):
         """Display the defeat screen"""
         print(config["text"]["GAME_LOSE"])
 
-    def victory():
+    def victory(self):
         """Display the victory screen"""
         print(config["text"]["GAME_LOSE"])
 
@@ -74,7 +74,7 @@ class Game:
             room.show()
             delta_score = room.play(score)
             score += delta_score
-            print(config[room_list[current_room]]["GAME_WIN"])
+            print(config["text"]["GAME_WIN"])
             print(f"Your current score: {score}, ({delta_score} in this room)")
             print(config["TRANSITION"])
             for i in range(5):

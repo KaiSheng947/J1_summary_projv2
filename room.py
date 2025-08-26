@@ -1,6 +1,7 @@
 import time
 import cards
 import yaml
+import random
 
 with open("text.yaml", "r") as file:
     config = yaml.safe_load(file)
@@ -32,12 +33,12 @@ class Blackjack(Room):
         
     def show(self) -> None:
         """Display room info."""
-        print(config["blackjack"]["description"])
+        print(config["rooms"]["blackjack"]["description"])
         for i in range(5):
                     print(".", end = "", flush = True)
-                    time.sleep(0.5)
+                    time.sleep(1)
                     print("")
-        print(config["blackjack"]["rules"])
+        print(config["rooms"]["blackjack"]["rules"])
 
 
     def draw_card(self) -> str:
@@ -132,7 +133,6 @@ class Blackjack(Room):
     
     def play(self, _):
         """Plays blackjack 3 rounds"""
-        self.show()
         for i in range(3):
             print('')
             prompt(f'Round {i+1}! [Press enter to continue]')
@@ -163,12 +163,12 @@ class Baccarat(Room):
     
     def show(self) -> None:
         """Display room info."""
-        print(config["baccarat"]["description"])
+        print(config["rooms"]["baccarat"]["description"])
         for i in range(5):
                     print(".", end = "", flush = True)
-                    time.sleep(0.5)
+                    time.sleep(1)
                     print("")
-        print(config["baccarat"]["rules"])
+        print(config["rooms"]["baccarat"]["rules"])
 
     def play(self, _):
         """Baccarat game - rules:
@@ -343,7 +343,7 @@ class Baccarat(Room):
             print(card.as_string())
         print(value2)
 
-class PokerRoom(Room):
+class Poker(Room):
     # Poker values dictionary inside the class
     POKER_VALUES = {
         1: 14,   # Ace counts as highest
@@ -366,12 +366,12 @@ class PokerRoom(Room):
 
     def show(self) -> None:
         """Display room info."""
-        print(config["poker"]["description"])
+        print(config["rooms"]["poker"]["description"])
         for i in range(5):
                     print(".", end = "", flush = True)
-                    time.sleep(0.5)
+                    time.sleep(1)
                     print("")
-        print(config["poker"]["rules"])
+        print(config["rooms"]["poker"]["rules"])
 
     def _create_deck(self):
         return [Card(suit, value) for suit in SUIT_SYMBOL for value in NAMES]
@@ -431,10 +431,10 @@ class PokerRoom(Room):
 
 
 # --- Example run ---
-if __name__ == "__main__":
-    room = PokerRoom()
-    for _ in range(3):
-        room.play()
+# if __name__ == "__main__":
+#     room = PokerRoom()
+#     for _ in range(3):
+#         room.play()
 
 
 
