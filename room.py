@@ -231,25 +231,25 @@ class Baccarat(Room):
             if banker_value >= 8 or player_value >= 8:
                 if bet == "Player":
                     if player_win == True:
-                        points += 20
+                        points += 100
                         self.display_win()
                     else:
-                        points -= 20
+                        points -= 100
                         self.display_loss()
                 elif bet == "Banker":
                     if banker_win == True:
-                        points += 20
+                        points += 100
                         self.display_win()
                     else:
-                        points -= 20
+                        points -= 100
                         self.display_loss()
                 else:
                     #more points are rewarded for winning with a tie
                     if tie == True:
-                        points += 50
+                        points += 150
                         self.display_win()
                     else:
-                        points -= 20
+                        points -= 100
                         self.display_loss()
 
             else:
@@ -282,25 +282,25 @@ class Baccarat(Room):
 
                 if bet == "Player":
                     if player_win == True:
-                        points += 20
+                        points += 100
                         self.display_win()
                     else:
-                        points -= 20
+                        points -= 100
                         self.display_loss()
                 elif bet == "Banker":
                     if banker_win == True:
-                        points += 20
+                        points += 100
                         self.display_win()
                     else:
-                        points -= 20
+                        points -= 100
                         self.display_loss()
                 else:
                     #more points are rewarded for winning with a tie
                     if tie == True:
-                        points += 50
+                        points += 150
                         self.display_win()
                     else:
-                        points -= 20
+                        points -= 100
                         self.display_loss()
 
             #closer to base case

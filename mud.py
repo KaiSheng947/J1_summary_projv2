@@ -76,7 +76,7 @@ class Game:
             score += delta_score
             print(config["text"]["GAME_WIN"])
             print(f"Your current score: {score}, ({delta_score} in this room)")
-            print(config["TRANSITION"])
+            print(config["text"]["TRANSITION"])
             for i in range(5):
                     print(".", end = "", flush = True)
                     time.sleep(0.5)
