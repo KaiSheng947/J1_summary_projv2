@@ -1,10 +1,23 @@
 import time
 import cards
-import yaml
 import random
 
-with open("text.yaml", "r") as file:
-    config = yaml.safe_load(file)
+from cards import Card, NAMES, SUIT_SYMBOL
+
+class InputOverride:
+    def __init__(self, override):
+        self.original = None
+        self.override = override
+    
+    def __enter__(self):
+        global INPUT_FUNCTION
+        self.original = INPUT_FUNCTION
+        INPUT_FUNCTION = self.override
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        global INPUT_FUNCTION
+        INPUT_FUNCTION = self.original
 
 INPUT_FUNCTION = input
 def prompt(question: str) -> str:
@@ -71,9 +84,9 @@ class Blackjack(Room):
             # Account for aces as it can be 11 or 1
             if cards[5] == 'A':
                 aces += 1
-                while total > 21 and aces:
-                    total -= 10
-                    aces -= 1
+        while total > 21 and aces:
+            total -= 10
+            aces -= 1
         return total
 
     def show_hand(self, owner: str, hand: list[str], total: int):
@@ -97,7 +110,10 @@ class Blackjack(Room):
                 player_hand.append(self.draw_card())
                 total = self.calculate_card(player_hand)
                 self.show_hand('Your', player_hand, total)
+            elif redraw == 'n':
+                break
             else:
+                print("Hmm... That isnt a y or an n! The dungeon assumes you meant n.")
                 break
         
         #Calculating Bot Result
@@ -113,7 +129,7 @@ class Blackjack(Room):
 
         #Determine winner
         if total > 21 and bot_total > 21:
-            self.points -= 100
+            self.points += 100
             return "Both bust! You win 100 points"
         elif bot_total > 21:
             self.points += 100
@@ -385,14 +401,21 @@ class Poker(Room):
 
         if 3 in counts.values():
             v = [k for k, c in counts.items() if c == 3][0]
-            return (3, f"Three of a kind ({NAMES[v]})")
+            return (35, f"Three of a kind ({NAMES[v]})", [self.POKER_VALUES[v]])
 
         if 2 in counts.values():
             v = [k for k, c in counts.items() if c == 2][0]
-            return (2, f"Pair of {NAMES[v]}s")
+            kickers = sorted(
+                [self.POKER_VALUES[val] for val in values if val != v],
+                reverse=True
+            )
+            return (25, f"Pair of {NAMES[v]}s", [self.POKER_VALUES[v]] + kickers)
 
-        high = max(values, key=lambda v: self.POKER_VALUES[v])
-        return (1, f"High card {NAMES[high]}")
+        # High card case
+        sorted_vals = sorted([self.POKER_VALUES[v] for v in values], reverse=True)
+        high = sorted_vals[0]
+        return (15, f"High card {NAMES[high] if high!=14 else "Ace"}", sorted_vals)
+
 
     def play(self, score=0) -> int:
         """Plays one round of poker. Updates player_score and bot_score.
@@ -403,40 +426,164 @@ class Poker(Room):
         player_hand = self._deal_cards(deck, 3)
         bot_hand = self._deal_cards(deck, 3)
 
-        player_score, player_desc = self._evaluate_hand(player_hand)
-        bot_score, bot_desc = self._evaluate_hand(bot_hand)
+        # Update scores
+        player_score, player_desc, player_ranks = self._evaluate_hand(player_hand)
+        bot_score, bot_desc, bot_ranks = self._evaluate_hand(bot_hand)
 
         print("\n--- Poker Round ---")
-        print("Your hand: " + " ".join([c.as_string() for c in player_hand]) + f" → {player_desc}")
         print("Bot hand: " + " ".join([c.as_string() for c in bot_hand]) + f" → {bot_desc}")
-
-        # Update scores
-        self.player_score += player_score
-        self.bot_score += bot_score
+        
+        prompt("Press enter to draw...") # Little do they know its already drawn lol
+        print("Your hand: " + " ".join([c.as_string() for c in player_hand]) + f" → {player_desc}")
 
         if player_score > bot_score:
             print(f"You win this round! (+{player_score})")
         elif bot_score > player_score:
             print(f"Bot wins this round! (+{bot_score} to bot)")
         else:
-            print(f"This round is a tie! (+{player_score} each)")
+            # tie-breaker by ranks
+            if player_ranks > bot_ranks:  # Python compares lists lexicographically
+                print(f"You win this round on high card! (+{player_score})")
+            elif bot_ranks > player_ranks:
+                print(f"Bot wins this round on high card! (+{bot_score} to bot)")
+            else:
+                print(f"This round is a tie! (+{player_score} each)")
+
 
         # Points gained for this round
         net_gain = player_score - bot_score
         self.points += net_gain
         print(f"Net points this round: {net_gain}")
-        print(f"Total player score: {self.player_score}, Bot score: {self.bot_score}\n")
 
         return net_gain
 
+class Roulette(Room):
+    def __init__(self):
+        super().__init__()
+
+    def show(self):
+        """Show info about this room"""
+        print("\nYou've made it to your final trial.")
+        print("Welcome to: Russian roulette\n")
+
+    def play(self, current_score: int) -> int:
+        """Call this function to play this room. Takes the current score, and returns 0 as its the last room."""
+        self.show()
+
+        slots, max_rotations = self.shop(current_score)
+
+        print("Type your last words...\n> ", end = "", flush = True)
+        time.sleep(2)
+        print("\rHa. Fate waits for nobody.")
+        
+        # Discard extra input and sleep 2.5 seconds.
+        print("\033[8m", end = "", flush = True)
+        for _ in range(20):
+            time.sleep(0.1)
+            print("\r \r", end = "", flush = True)
+
+        print(f"\033[0m\nThe gun cocks. It has {slots} slots.")
+        print(f"It could turn {max_rotations} times.")
+        time.sleep(2)
+
+        print("")
+        time.sleep(1)
+        print("Ready?")
+        time.sleep(2.5)
+        print("Not like I care.\n")
+        time.sleep(0.5)
+
+        rotations = random.randint(max_rotations // 3, max_rotations)
+        roulette = self.roulette(rotations, slots)
+
+        reset = "\033[0m"
+        font = "\033[41;3;1m"
+        if roulette == '0':
+            print(f"{font}Pew.", end = "", flush = True)
+            for delay in self.decay(25, increase = 0.1):
+                print(random.choice([",", ".", f"{reset}\n{font}", " ", " "]), end = "", flush = True)
+                time.sleep(delay)
+
+            print(reset)
+        else:
+            print("Pew.")
+            time.sleep(1)
+            print("You... Live.")
+        
+        return 0 
+        
+    def shop(self, current_score: int) -> list:
+        """The shop to buy powerups for russian roulette. Returns powerups."""
+        slots = 6
+        max_rotations = 30
+
+        # Powerups: 
+        # 1. Buy more slots
+        # 2. Buy less rotations
+
+        # See graphs here: https://www.desmos.com/calculator/ouyracensx
+        # Each cost increases
+        next_slot_cost = lambda: 10 + 3 * (slots - 6) # First buy is 10pts, incereases by 3 per buy.
+        # Increasing cost for each additional upgrade, cost 900 to completely eliminate risk.
+        next_rotation_cost = lambda: round(30 + 1/(0.005 * (max_rotations - 1) + 0.0001) - (1/4) * (max_rotations - 1))
+
+        while True:
+            print("Welcome to the shop. you can buy these: ")
+            slot_cost = next_slot_cost()
+            print(f"1) ${slot_cost}: Increase number of slots from {slots} -> {slots+1}.")
+
+            rotation_cost = next_rotation_cost()
+            print(f"2) ${rotation_cost}: Decrease max number of rotations from {max_rotations} -> {max_rotations-1}")
+
+            print(f"Your balance is: ${current_score}")
+            if current_score < slot_cost and current_score < rotation_cost:
+                print(f"Whoops! You're too poor to buy anything more.")
+                break
+            choice = prompt("Which do you want to buy? Enter anything which is not 1 or 2 to exit the shop:\n> ")
+
+            if choice == "1":
+                print("You bought: one more slot!")
+                slots += 1
+                current_score -= slot_cost
+            elif choice == "2":
+                print("You bought: one less rotation!")
+                max_rotations -= 1
+                current_score -= rotation_cost
+            else:
+                print("You exit the shop.")
+                break
+    
+        return slots, max_rotations
+
+    def decay(self, iter_num: int, increase: float = 0.05) -> int:
+        """A decay function for the turning in the barrel"""
+        for i in range(iter_num):
+            yield (i+1) * 0.05
+
+    def roulette(self, iter_num, slots) -> str:
+        """An animated russian roulette"""
+        # Create barrel
+        barrel = ['.'] * slots
+        # Add bullet
+        bullet_slot = random.randint(1, slots)
+        barrel[bullet_slot - 1] = "0"
+
+        print(" V")
+
+        print("\r[" + "] [".join(barrel) + "]", end = '', flush = True)
+        for delay in self.decay(iter_num):
+            barrel.append(barrel.pop(0)) # Roll the barrel
+            print("\r[" + "] [".join(barrel) + "]", end = '', flush = True)
+            time.sleep(delay) # Delay
+        
+        print("") # End the output
+
+        return barrel[0] 
 
 # --- Example run ---
-# if __name__ == "__main__":
-#     room = PokerRoom()
-#     for _ in range(3):
-#         room.play()
-
-
+if __name__ == "__main__":
+    room = Roulette()
+    room.play(160)
 
 # #testing
 # baccarat = Baccarat()

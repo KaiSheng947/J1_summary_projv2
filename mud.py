@@ -2,6 +2,7 @@ from room import (
     Blackjack,
     Baccarat,
     Poker,
+    Roulette,
     Room
 )
 
@@ -13,7 +14,7 @@ with open("text.yaml", "r") as file:
 
 
 class Game:
-    rooms = [Blackjack, Baccarat, Poker]
+    rooms = [Blackjack, Baccarat, Poker, Roulette] # Note: supposed to have poker lol
     def __init__(self):
         pass
 
@@ -67,18 +68,16 @@ class Game:
 
         #displays intro
         self.show_intro()
-
-
-        for current_room, room_class in enumerate(self.rooms):
+        score = 0
+        for idx, room_class in enumerate(self.rooms):
             room = room_class()
             room.show()
             delta_score = room.play(score)
             score += delta_score
-            print(config["text"]["GAME_WIN"])
-            print(f"Your current score: {score}, ({delta_score} in this room)")
-            print(config["text"]["TRANSITION"])
-            for i in range(5):
-                    print(".", end = "", flush = True)
-                    time.sleep(0.5)
-            print("")          
+            
+            # Dont show for last room.
+            # Last room handles game win/gameover
+            if idx != len(self.rooms) - 1:
+                print(f"You've completed this trial...")
+                print(f"Your current score: {score}, ({delta_score} in this room)")
 
