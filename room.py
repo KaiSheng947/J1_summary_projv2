@@ -131,7 +131,7 @@ class Blackjack(Room):
 
         #Determine winner
         if total > 21 and bot_total > 21:
-            self.points -= 100
+            self.points += 100
             return "Both bust! You win 100 points"
         elif bot_total > 21:
             self.points += 100
@@ -385,25 +385,25 @@ class Poker(Room):
         return [deck.pop() for _ in range(num)]
 
     def _evaluate_hand(self, hand):
-    values = [card.value for card in hand]
-    counts = {v: values.count(v) for v in set(values)}
+        values = [card.value for card in hand]
+        counts = {v: values.count(v) for v in set(values)}
 
-    if 3 in counts.values():
-        v = [k for k, c in counts.items() if c == 3][0]
-        return (3, f"Three of a kind ({NAMES[v]})", [self.POKER_VALUES[v]])
+        if 3 in counts.values():
+            v = [k for k, c in counts.items() if c == 3][0]
+            return (35, f"Three of a kind ({NAMES[v]})", [self.POKER_VALUES[v]])
 
-    if 2 in counts.values():
-        v = [k for k, c in counts.items() if c == 2][0]
-        kickers = sorted(
-            [self.POKER_VALUES[val] for val in values if val != v],
-            reverse=True
-        )
-        return (2, f"Pair of {NAMES[v]}s", [self.POKER_VALUES[v]] + kickers)
+        if 2 in counts.values():
+            v = [k for k, c in counts.items() if c == 2][0]
+            kickers = sorted(
+                [self.POKER_VALUES[val] for val in values if val != v],
+                reverse=True
+            )
+            return (25, f"Pair of {NAMES[v]}s", [self.POKER_VALUES[v]] + kickers)
 
-    # High card case
-    sorted_vals = sorted([self.POKER_VALUES[v] for v in values], reverse=True)
-    high = sorted_vals[0]
-    return (1, f"High card {NAMES[values[values.index(high)]]}", sorted_vals)
+        # High card case
+        sorted_vals = sorted([self.POKER_VALUES[v] for v in values], reverse=True)
+        high = sorted_vals[0]
+        return (15, f"High card {NAMES[high] if high!=14 else "Ace"}", sorted_vals)
 
 
     def play(self, score=0) -> int:
@@ -415,16 +415,15 @@ class Poker(Room):
         player_hand = self._deal_cards(deck, 3)
         bot_hand = self._deal_cards(deck, 3)
 
-        player_score, player_desc = self._evaluate_hand(player_hand)
-        bot_score, bot_desc = self._evaluate_hand(bot_hand)
+        # Update scores
+        player_score, player_desc, player_ranks = self._evaluate_hand(player_hand)
+        bot_score, bot_desc, bot_ranks = self._evaluate_hand(bot_hand)
 
         print("\n--- Poker Round ---")
-        print("Your hand: " + " ".join([c.as_string() for c in player_hand]) + f" → {player_desc}")
         print("Bot hand: " + " ".join([c.as_string() for c in bot_hand]) + f" → {bot_desc}")
-
-        # Update scores
-        player_rank, player_val, player_desc = self._evaluate_hand(player_hand)
-        bot_rank, bot_val, bot_desc = self._evaluate_hand(bot_hand)
+        
+        prompt("Press enter to draw...") # Little do they know its already drawn lol
+        print("Your hand: " + " ".join([c.as_string() for c in player_hand]) + f" → {player_desc}")
 
         if player_score > bot_score:
             print(f"You win this round! (+{player_score})")
@@ -444,7 +443,6 @@ class Poker(Room):
         net_gain = player_score - bot_score
         self.points += net_gain
         print(f"Net points this round: {net_gain}")
-        print(f"Total player score: {self.player_score}, Bot score: {self.bot_score}\n")
 
         return net_gain
 
@@ -452,20 +450,56 @@ class Roulette(Room):
     def __init__(self):
         super().__init__()
 
+    def show(self):
+        """Show info about this room"""
+        print("\nYou've made it to your final trial.")
+        print("Welcome to: Russian roulette\n")
+
     def play(self, current_score: int) -> int:
+        """Call this function to play this room. Takes the current score, and returns 0 as its the last room."""
+        self.show()
+
         slots, max_rotations = self.shop(current_score)
 
-        print(f"Your gun has {slots} slots, and can rotate at most {max_rotations} times...")
-        rotations = random.randint(max_rotations // 3, max_rotations)
+        print("Type your last words...\n> ", end = "", flush = True)
+        time.sleep(2)
+        print("\rHa. Fate waits for nobody.")
+        
+        # Discard extra input and sleep 2.5 seconds.
+        print("\033[8m", end = "", flush = True)
+        for _ in range(20):
+            time.sleep(0.1)
+            print("\r \r", end = "", flush = True)
 
+        print(f"\033[0m\nThe gun cocks. It has {slots} slots.")
+        print(f"It could turn {max_rotations} times.")
+        time.sleep(2)
+
+        print("")
+        time.sleep(1)
+        print("Ready?")
+        time.sleep(2.5)
+        print("Not like I care.\n")
+        time.sleep(0.5)
+
+        rotations = random.randint(max_rotations // 3, max_rotations)
         roulette = self.roulette(rotations, slots)
 
-        if roulette == "0":
-            print("Oh no u got shot and died")
+        reset = "\033[0m"
+        font = "\033[41;3;1m"
+        if roulette == '0':
+            print(f"{font}Pew.", end = "", flush = True)
+            for delay in self.decay(25, increase = 0.1):
+                print(random.choice([",", ".", f"{reset}\n{font}", " ", " "]), end = "", flush = True)
+                time.sleep(delay)
+
+            print(reset)
         else:
-            print("wow u survived nice okay")
+            print("Pew.")
+            time.sleep(1)
+            print("You... Live.")
         
-        return -31415692 # Find a way to return if you won or lost?
+        return 0 
         
     def shop(self, current_score: int) -> list:
         """The shop to buy powerups for russian roulette. Returns powerups."""
@@ -538,7 +572,7 @@ class Roulette(Room):
 # --- Example run ---
 if __name__ == "__main__":
     room = Roulette()
-    room.play(100000)
+    room.play(160)
 
 # #testing
 # baccarat = Baccarat()
