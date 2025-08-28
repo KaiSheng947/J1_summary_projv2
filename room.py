@@ -385,19 +385,26 @@ class Poker(Room):
         return [deck.pop() for _ in range(num)]
 
     def _evaluate_hand(self, hand):
-        values = [card.value for card in hand]
-        counts = {v: values.count(v) for v in set(values)}
+    values = [card.value for card in hand]
+    counts = {v: values.count(v) for v in set(values)}
 
-        if 3 in counts.values():
-            v = [k for k, c in counts.items() if c == 3][0]
-            return (3, f"Three of a kind ({NAMES[v]})")
+    if 3 in counts.values():
+        v = [k for k, c in counts.items() if c == 3][0]
+        return (3, f"Three of a kind ({NAMES[v]})", [self.POKER_VALUES[v]])
 
-        if 2 in counts.values():
-            v = [k for k, c in counts.items() if c == 2][0]
-            return (2, f"Pair of {NAMES[v]}s")
+    if 2 in counts.values():
+        v = [k for k, c in counts.items() if c == 2][0]
+        kickers = sorted(
+            [self.POKER_VALUES[val] for val in values if val != v],
+            reverse=True
+        )
+        return (2, f"Pair of {NAMES[v]}s", [self.POKER_VALUES[v]] + kickers)
 
-        high = max(values, key=lambda v: self.POKER_VALUES[v])
-        return (1, f"High card {NAMES[high]}")
+    # High card case
+    sorted_vals = sorted([self.POKER_VALUES[v] for v in values], reverse=True)
+    high = sorted_vals[0]
+    return (1, f"High card {NAMES[values[values.index(high)]]}", sorted_vals)
+
 
     def play(self, score=0) -> int:
         """Plays one round of poker. Updates player_score and bot_score.
@@ -416,15 +423,22 @@ class Poker(Room):
         print("Bot hand: " + " ".join([c.as_string() for c in bot_hand]) + f" → {bot_desc}")
 
         # Update scores
-        self.player_score += player_score
-        self.bot_score += bot_score
+        player_rank, player_val, player_desc = self._evaluate_hand(player_hand)
+        bot_rank, bot_val, bot_desc = self._evaluate_hand(bot_hand)
 
         if player_score > bot_score:
             print(f"You win this round! (+{player_score})")
         elif bot_score > player_score:
             print(f"Bot wins this round! (+{bot_score} to bot)")
         else:
-            print(f"This round is a tie! (+{player_score} each)")
+            # tie-breaker by ranks
+            if player_ranks > bot_ranks:  # Python compares lists lexicographically
+                print(f"You win this round on high card! (+{player_score})")
+            elif bot_ranks > player_ranks:
+                print(f"Bot wins this round on high card! (+{bot_score} to bot)")
+            else:
+                print(f"This round is a tie! (+{player_score} each)")
+
 
         # Points gained for this round
         net_gain = player_score - bot_score
@@ -472,9 +486,9 @@ class Roulette(Room):
 
         print(" V")
         for delay in self.decay(iter_num):
+            barrel.append(barrel.pop(0)) # Roll the barrel
             print("\r[" + "] [".join(barrel) + "]", end = '', flush = True)
             time.sleep(delay) # Delay
-            barrel.append(barrel.pop(0)) # Roll the barrel
         
         print("") # End the output
 
