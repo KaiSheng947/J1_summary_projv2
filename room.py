@@ -452,6 +452,7 @@ class Roulette(Room):
 
     def show(self):
         """Show info about this room"""
+        prompt("[Press enter to continue]")
         print("\nYou've made it to your final trial.")
         print("Welcome to: Russian roulette\n")
 
@@ -459,10 +460,10 @@ class Roulette(Room):
         """Call this function to play this room. Takes the current score, and returns 0 as its the last room."""
         self.show()
 
-        slots, max_rotations = self.shop(current_score)
+        chambers, max_rotations = self.shop(current_score)
 
         print("Type your last words...\n> ", end = "", flush = True)
-        time.sleep(2)
+        time.sleep(4)
         print("\rHa. Fate waits for nobody.")
         
         # Discard extra input and sleep 2.5 seconds.
@@ -471,19 +472,19 @@ class Roulette(Room):
             time.sleep(0.1)
             print("\r \r", end = "", flush = True)
 
-        print(f"\033[0m\nThe gun cocks. It has {slots} slots.")
+        print(f"\033[0m\nThe gun cocks. It has {chambers} chambers.")
         print(f"It could turn {max_rotations} times.")
         time.sleep(2)
 
         print("")
         time.sleep(1)
         print("Ready?")
-        time.sleep(2.5)
+        time.sleep(3)
         print("Not like I care.\n")
         time.sleep(0.5)
 
         rotations = random.randint(max_rotations // 3, max_rotations)
-        roulette = self.roulette(rotations, slots)
+        roulette = self.roulette(rotations, chambers)
 
         reset = "\033[0m"
         font = "\033[41;3;1m"
@@ -503,59 +504,67 @@ class Roulette(Room):
         
     def shop(self, current_score: int) -> list:
         """The shop to buy powerups for russian roulette. Returns powerups."""
-        slots = 6
+        chambers = 6
         max_rotations = 30
 
         # Powerups: 
-        # 1. Buy more slots
+        # 1. Buy more chambers
         # 2. Buy less rotations
 
         # See graphs here: https://www.desmos.com/calculator/ouyracensx
         # Each cost increases
-        next_slot_cost = lambda: 10 + 3 * (slots - 6) # First buy is 10pts, incereases by 3 per buy.
+        next_chamber_cost = lambda: 10 + 3 * (chambers - 6) # First buy is 10pts, incereases by 3 per buy.
         # Increasing cost for each additional upgrade, cost 900 to completely eliminate risk.
         next_rotation_cost = lambda: round(30 + 1/(0.005 * (max_rotations - 1) + 0.0001) - (1/4) * (max_rotations - 1))
 
         while True:
             print("Welcome to the shop. you can buy these: ")
-            slot_cost = next_slot_cost()
-            print(f"1) ${slot_cost}: Increase number of slots from {slots} -> {slots+1}.")
+            chamber_cost = next_chamber_cost()
+            print(f"1) ${chamber_cost}: Increase number of chambers from {chambers} -> {chambers+1}.")
 
             rotation_cost = next_rotation_cost()
             print(f"2) ${rotation_cost}: Decrease max number of rotations from {max_rotations} -> {max_rotations-1}")
 
+            print(f"3) $0: Decrease number of chambers from {chambers} -> {chambers-1}")
+
             print(f"Your balance is: ${current_score}")
-            if current_score < slot_cost and current_score < rotation_cost:
+            if current_score < chamber_cost and current_score < rotation_cost:
                 print(f"Whoops! You're too poor to buy anything more.")
                 break
-            choice = prompt("Which do you want to buy? Enter anything which is not 1 or 2 to exit the shop:\n> ")
+            choice = prompt("Which do you want to buy? Enter anything which is not 1, 2 or 3 to exit the shop:\n> ")
 
             if choice == "1":
-                print("You bought: one more slot!")
-                slots += 1
-                current_score -= slot_cost
+                print("You bought: one more chamber!")
+                chambers += 1
+                current_score -= chamber_cost
             elif choice == "2":
                 print("You bought: one less rotation!")
                 max_rotations -= 1
                 current_score -= rotation_cost
+            elif choice == "3":
+                print("You got: one less chamber...???")
+                if chambers <= 3:
+                    print("Oops, the gun cant get smaller!")
+                else:
+                    chambers -= 1
             else:
                 print("You exit the shop.")
                 break
     
-        return slots, max_rotations
+        return chambers, max_rotations
 
     def decay(self, iter_num: int, increase: float = 0.05) -> int:
         """A decay function for the turning in the barrel"""
         for i in range(iter_num):
             yield (i+1) * 0.05
 
-    def roulette(self, iter_num, slots) -> str:
+    def roulette(self, iter_num, chambers) -> str:
         """An animated russian roulette"""
         # Create barrel
-        barrel = ['.'] * slots
+        barrel = ['.'] * chambers
         # Add bullet
-        bullet_slot = random.randint(1, slots)
-        barrel[bullet_slot - 1] = "0"
+        bullet_chamber = random.randint(1, chambers)
+        barrel[bullet_chamber - 1] = "0"
 
         print(" V")
 
