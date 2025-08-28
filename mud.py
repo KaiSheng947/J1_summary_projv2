@@ -45,10 +45,14 @@ class Game:
     def play(self) -> None:
         self.show_intro()
         score = 0
-        for room_class in self.rooms:
+        for idx, room_class in enumerate(self.rooms):
             room = room_class()
             delta_score = room.play(score)
             score += delta_score
-            print(f"You've completed this trial...")
-            print(f"Your current score: {score}, ({delta_score} in this room)")
+            
+            # Dont show for last room.
+            # Last room handles game win/gameover
+            if idx != len(self.rooms) - 1:
+                print(f"You've completed this trial...")
+                print(f"Your current score: {score}, ({delta_score} in this room)")
 
