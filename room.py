@@ -4,6 +4,11 @@ import random
 
 from cards import Card, NAMES, SUIT_SYMBOL
 
+import yaml
+
+with open("text.yaml", "r") as file:
+    config = yaml.safe_load(file)
+
 class InputOverride:
     def __init__(self, override):
         self.original = None
@@ -203,11 +208,7 @@ class Baccarat(Room):
         points = 0
         rounds = 1
     
-        while not game_over and rounds <= 3:
-            #base case
-            if points < 0:
-                game_over = True
-                break
+        while rounds <= 3:
             
             #displays current points and round
             print(f"Current Points: {points}\n Current Round: {rounds}")
