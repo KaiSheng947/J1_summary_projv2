@@ -46,6 +46,7 @@ class Room:
     def show(self, current_room):
         """Show info about this room"""
         prompt("[Press enter to continue]")
+        print("\033[1A\r\033[2K")
         print(config["rooms"][current_room]["description"])
         for i in range(5):
                     print(".", end = "", flush = True)
@@ -447,7 +448,6 @@ class Roulette(Room):
 
     def play(self, current_score: int) -> int:
         """Call this function to play this room. Takes the current score, and returns 0 as its the last room."""
-        self.show()
 
         chambers, max_rotations = self.shop(current_score)
 
