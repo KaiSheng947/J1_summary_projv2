@@ -389,12 +389,15 @@ class Poker(Room):
         super().__init__()  # initialize points, player_score, bot_score
 
     def _create_deck(self):
+        """creates a deck of poker cards"""
         return [Card(suit, value) for suit in SUIT_SYMBOL for value in NAMES]
 
     def _deal_cards(self, deck, num=3):
+        """deals 3 cards to player and dealer"""
         return [deck.pop() for _ in range(num)]
 
     def _evaluate_hand(self, hand):
+        """calculates the value for poker hands using the simplified rules"""
         values = [card.value for card in hand]
         counts = {v: values.count(v) for v in set(values)}
 
