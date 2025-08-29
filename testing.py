@@ -5,7 +5,8 @@ from room import (
     InputOverride,
     Blackjack,
     Baccarat,
-    Poker
+    Poker,
+    Roulette
 )
 
 import mud
