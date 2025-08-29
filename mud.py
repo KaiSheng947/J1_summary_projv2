@@ -69,9 +69,10 @@ class Game:
         #displays intro
         self.show_intro()
         score = 0
+        room_list = ["blackjack", "baccarat", "poker", "russian_roulette"]
         for idx, room_class in enumerate(self.rooms):
             room = room_class()
-            room.show()
+            room.show(room_list[idx])
             delta_score = room.play(score)
             score += delta_score
             

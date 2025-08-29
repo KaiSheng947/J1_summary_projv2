@@ -42,22 +42,23 @@ class Room:
         """Plays the room. Returns the score gain/loss due to the game.
         Eg. if you gained 20, return 20. If you lost 20, return -20."""
         raise NotImplementedError
+    
+    def show(self, current_room):
+        """Show info about this room"""
+        prompt("[Press enter to continue]")
+        print(config["rooms"][current_room]["description"])
+        for i in range(5):
+                    print(".", end = "", flush = True)
+                    time.sleep(1)
+                    print("")
+        print(config["rooms"][current_room]["rules"])
+
 
 class Blackjack(Room):
     """Room with blackjack.
     Implements the blackjack game"""
     def __init__(self):
         super().__init__()
-        
-    def show(self) -> None:
-        """Display room info."""
-        print(config["rooms"]["blackjack"]["description"])
-        for i in range(5):
-                    print(".", end = "", flush = True)
-                    time.sleep(1)
-                    print("")
-        print(config["rooms"]["blackjack"]["rules"])
-
 
     def draw_card(self) -> str:
         """Randomly generates cards for player and bot"""
@@ -181,15 +182,6 @@ class Baccarat(Room):
     }
     def _init_(self):
         super()._init_()
-    
-    def show(self) -> None:
-        """Display room info."""
-        print(config["rooms"]["baccarat"]["description"])
-        for i in range(5):
-                    print(".", end = "", flush = True)
-                    time.sleep(1)
-                    print("")
-        print(config["rooms"]["baccarat"]["rules"])
 
     def play(self, _):
         """Baccarat game - rules:
@@ -381,15 +373,6 @@ class Poker(Room):
     def __init__(self):
         super().__init__()  # initialize points, player_score, bot_score
 
-    def show(self) -> None:
-        """Display room info."""
-        print(config["rooms"]["poker"]["description"])
-        for i in range(5):
-                    print(".", end = "", flush = True)
-                    time.sleep(1)
-                    print("")
-        print(config["rooms"]["poker"]["rules"])
-
     def _create_deck(self):
         return [Card(suit, value) for suit in SUIT_SYMBOL for value in NAMES]
 
@@ -461,12 +444,6 @@ class Poker(Room):
 class Roulette(Room):
     def __init__(self):
         super().__init__()
-
-    def show(self):
-        """Show info about this room"""
-        prompt("[Press enter to continue]")
-        print("\nYou've made it to your final trial.")
-        print("Welcome to: Russian roulette\n")
 
     def play(self, current_score: int) -> int:
         """Call this function to play this room. Takes the current score, and returns 0 as its the last room."""
