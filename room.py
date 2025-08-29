@@ -353,7 +353,21 @@ class Baccarat(Room):
         print(value2)
 
 class Poker(Room):
-    # Poker values dictionary inside the class
+    """
+    Room 3 - poker (for kids)
+    the player and dealer both receives three cards each
+    then their hands are compared to find the winning hand
+
+    high card - worst outcome, but the highest value card wins, 
+    occurs when all cards have different values (1,2,3)
+    the winning hand has the higher value card (A -> K -> Q -> ... -> 2)
+
+    pair - when 2 cards have the same number value (like two 7's)
+
+    three of a kind - when all 3 cards have the same number value (like three 5's)
+
+    winning hand: three of a kind -> pair -> high card
+    """
     POKER_VALUES = {
         1: 14,   # Ace counts as highest
         2: 2,
