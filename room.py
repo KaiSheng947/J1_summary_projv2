@@ -4,6 +4,11 @@ import random
 
 from cards import Card, NAMES, SUIT_SYMBOL
 
+import yaml
+
+with open("text.yaml", "r") as file:
+    config = yaml.safe_load(file)
+
 class InputOverride:
     def __init__(self, override):
         self.original = None
@@ -45,16 +50,14 @@ class Blackjack(Room):
         super().__init__()
         
     def show(self) -> None:
-        """Display room info and how to play"""
-        print(
-            "Room 1: Blackjack\n"
-            "1. You and the bot will receive two cards each. You will get to see one of the bot’s cards.\n"
-            "2. The goal is to get a hand closest to 21 without going over it. Going over 21 is called a bust.\n"
-            "3. Hand Values: Cards J, Q, K are worth 10, and Aces can be 1 or 11.\n"
-            "4. During your turn, you can choose whether to draw another card or not. The bot will draw if their hand is below 17.\n"
-            "5. Whoever’s hand is closer to 21 without going over it wins.\n"
-            "6. If the dealer busts, the player wins. If it’s a tie, the player loses."
-        )
+        """Display room info."""
+        print(config["rooms"]["blackjack"]["description"])
+        for i in range(5):
+                    print(".", end = "", flush = True)
+                    time.sleep(1)
+                    print("")
+        print(config["rooms"]["blackjack"]["rules"])
+
 
     def draw_card(self) -> str:
         """Randomly generates cards for player and bot"""
@@ -151,7 +154,6 @@ class Blackjack(Room):
     
     def play(self, _):
         """Plays blackjack 3 rounds"""
-        self.show()
         for i in range(3):
             print('')
             prompt(f'Round {i+1}! [Press enter to continue]')
@@ -182,7 +184,12 @@ class Baccarat(Room):
     
     def show(self) -> None:
         """Display room info."""
-        print("Baccarat room (placeholder)")
+        print(config["rooms"]["baccarat"]["description"])
+        for i in range(5):
+                    print(".", end = "", flush = True)
+                    time.sleep(1)
+                    print("")
+        print(config["rooms"]["baccarat"]["rules"])
 
     def play(self, _):
         """Baccarat game - rules:
@@ -201,11 +208,7 @@ class Baccarat(Room):
         points = 0
         rounds = 1
     
-        while not game_over and rounds <= 3:
-            #base case
-            if points < 0:
-                game_over = True
-                break
+        while rounds <= 3:
             
             #displays current points and round
             print(f"Current Points: {points}\n Current Round: {rounds}")
@@ -245,25 +248,25 @@ class Baccarat(Room):
             if banker_value >= 8 or player_value >= 8:
                 if bet == "Player":
                     if player_win == True:
-                        points += 20
+                        points += 100
                         self.display_win()
                     else:
-                        points -= 20
+                        points -= 100
                         self.display_loss()
                 elif bet == "Banker":
                     if banker_win == True:
-                        points += 20
+                        points += 100
                         self.display_win()
                     else:
-                        points -= 20
+                        points -= 100
                         self.display_loss()
                 else:
                     #more points are rewarded for winning with a tie
                     if tie == True:
-                        points += 50
+                        points += 150
                         self.display_win()
                     else:
-                        points -= 20
+                        points -= 100
                         self.display_loss()
 
             else:
@@ -296,25 +299,25 @@ class Baccarat(Room):
 
                 if bet == "Player":
                     if player_win == True:
-                        points += 20
+                        points += 100
                         self.display_win()
                     else:
-                        points -= 20
+                        points -= 100
                         self.display_loss()
                 elif bet == "Banker":
                     if banker_win == True:
-                        points += 20
+                        points += 100
                         self.display_win()
                     else:
-                        points -= 20
+                        points -= 100
                         self.display_loss()
                 else:
                     #more points are rewarded for winning with a tie
                     if tie == True:
-                        points += 50
+                        points += 150
                         self.display_win()
                     else:
-                        points -= 20
+                        points -= 100
                         self.display_loss()
 
             #closer to base case
@@ -377,6 +380,15 @@ class Poker(Room):
 
     def __init__(self):
         super().__init__()  # initialize points, player_score, bot_score
+
+    def show(self) -> None:
+        """Display room info."""
+        print(config["rooms"]["poker"]["description"])
+        for i in range(5):
+                    print(".", end = "", flush = True)
+                    time.sleep(1)
+                    print("")
+        print(config["rooms"]["poker"]["rules"])
 
     def _create_deck(self):
         return [Card(suit, value) for suit in SUIT_SYMBOL for value in NAMES]

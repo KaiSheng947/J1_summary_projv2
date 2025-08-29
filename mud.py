@@ -6,7 +6,12 @@ from room import (
     Room
 )
 
-import json
+import time
+import yaml
+
+with open("text.yaml", "r") as file:
+    config = yaml.safe_load(file)
+
 
 class Game:
     rooms = [Blackjack, Baccarat, Poker, Roulette] # Note: supposed to have poker lol
@@ -37,16 +42,36 @@ class Game:
     def quit_game(self):
         pass
 
-    def show_intro(self) -> None:
-        """Show the intro message to the game"""
-        print("Welcome to the \033[1;5;4;3;31md u n g e o n\033[0m")
-        print("Hope you get through your three trials...")
+    def show_intro(self):
+        """Display the game intro"""
+        print(config["text"]["WELCOME"])
+
+    def is_gameover(self):
+        """Indicates end of game"""
+        print(config["text"]["EXIT_MSG"])
+
+    def defeat(self):
+        """Display the defeat screen"""
+        print(config["text"]["GAME_LOSE"])
+
+    def victory(self):
+        """Display the victory screen"""
+        print(config["text"]["GAME_LOSE"])
+
     
+
     def play(self) -> None:
+        """main game loop
+        """
+        room_list = ["blackjack", "baccarat", "poker", "russian_roulette"]
+        score = 0
+
+        #displays intro
         self.show_intro()
         score = 0
         for idx, room_class in enumerate(self.rooms):
             room = room_class()
+            room.show()
             delta_score = room.play(score)
             score += delta_score
             
