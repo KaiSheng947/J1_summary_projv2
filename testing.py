@@ -4,7 +4,8 @@ import random
 from room import (
     InputOverride,
     Blackjack,
-    Baccarat
+    Baccarat,
+    Poker
 )
 
 import mud
@@ -72,6 +73,19 @@ class TestGame(unittest.TestCase):
         """Test game intro"""
         game = mud.Game()
         game.show_intro()
+    
+class TestPoker(unittest.TestCase):
+    def test_poker(self):
+        """Test poker."""
+        room = Poker()
+        with InputOverride(lambda _: ""): 
+            score = room.play(0)
+        self.assertIsInstance(score, int)
+
+class TestRoulette(unittest.TestCase):
+    def test_roulette(self):
+        """Basic test to test roulette."""
+        room = Roulette() # Make sure it initialises.
 
 if __name__ == '__main__':
     unittest.main()
