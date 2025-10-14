@@ -4,6 +4,7 @@ from typing import Callable
 import cards
 import config
 import random
+import text
 
 
 class InputOverride:
@@ -42,10 +43,16 @@ def prompt_choice(
     prompt_str = f"{question} ({separator.join(choices)}): "
     choice = prompt(prompt_str)
     while reprompt_on_error and choice not in choices:
-        print(error_msg)
+        text.display_line(error_msg)
         choice = prompt(prompt_str)
     return choice
 
+
+def prompt_continue(
+        prompt_text: str = "[Press enter to continue]"
+) -> None:
+    """Prompt the user to press enter to continue."""
+    prompt(prompt_text)
 
 class Room:
     """Parent class of all rooms. 
@@ -65,13 +72,13 @@ class Room:
     def show(self) -> None:
         """Show info about this room"""
         prompt("[Press enter to continue]")
-        print("\033[1A\r\033[2K")
-        print(config.rooms[self.name]["description"])
+        text.clear_previous_line()
+        text.display_line(config.rooms[self.name]["description"])
         for i in range(5):
-            print(".", end="", flush=True)
+            text.display_span(".")
             time.sleep(1)
-            print("")
-        print(config.rooms[self.name]["rules"])
+            text.linebreak()
+        text.display_line(config.rooms[self.name]["rules"])
 
 
 class Blackjack(Room):
@@ -118,15 +125,15 @@ class Blackjack(Room):
 
     def show_hand(self, owner: str, hand: list[cards.Card]) -> None:
         """displays the hand bot and player have"""
-        print(f"{owner} hand: {', '.join(card.as_string() for card in hand)}")
-        print(f"{owner} Total: {self.calculate_hand_value(hand)}")
+        text.display_line(f"{owner} hand: {', '.join(card.as_string() for card in hand)}")
+        text.display_line(f"{owner} Total: {self.calculate_hand_value(hand)}")
 
     def play_round(self) -> str:
         """play one round of blackjack and return game outcome"""
         player_hand = [self.draw_card(), self.draw_card()]
         bot_hand = [self.draw_card(), self.draw_card()]
-        print(f"Bot 1st card: {bot_hand[0].as_string()}")
-        print('')
+        text.display_line(f"Bot 1st card: {bot_hand[0].as_string()}")
+        text.linebreak()
 
         #Calculating Player Result
         self.show_hand('Your', player_hand)
@@ -146,7 +153,7 @@ class Blackjack(Room):
                 break
         
         #Calculating Bot Result
-        print('')
+        text.linebreak()
         while self.calculate_hand_value(bot_hand) < 17:
             bot_hand.append(self.draw_card())
             bot_total = self.calculate_hand_value(bot_hand)
@@ -181,10 +188,11 @@ class Blackjack(Room):
     def play(self, score: int = 0) -> int:
         """Plays blackjack 3 rounds"""
         for i in range(3):
-            print('')
-            prompt(f'Round {i+1}! [Press enter to continue]')
-            print(self.play_round())
-            print('')
+            text.linebreak()
+            text.display_span(f'Round {i+1}! ')
+            prompt_continue()
+            text.display_line(self.play_round())
+            text.linebreak()
         return self.points
 
 class Baccarat(Room):
@@ -230,9 +238,8 @@ class Baccarat(Room):
         while rounds <= 3:
             
             #displays current points and round
-            print(f"Current Points: {points}\n Current Round: {rounds}")
-                
-            #checks for validity
+            text.display_line(f"Current Points: {points}")
+            text.display_line(f"Current Round: {rounds}")
 
             bet = prompt_choice(
                 "What would you like to wager on?",
@@ -247,7 +254,10 @@ class Baccarat(Room):
             #displays starting hand
             player_hand = cards.create_random_hand(2)
             banker_hand = cards.create_random_hand(2)
-            self.display_hand(player_hand, banker_hand)
+            text.display_line("Player's hand and value")
+            self.display_hand(player_hand)
+            text.display_line("Banker's hand and value")
+            self.display_hand(banker_hand)
 
             player_value = self.calculate_value_of_hand(player_hand)
             banker_value = self.calculate_value_of_hand(banker_hand)
@@ -285,12 +295,12 @@ class Baccarat(Room):
 
             else:
                 #slows the game down to show that game has not ended
-                print("No natural 8s or 9s!")
+                text.display_line("No natural 8s or 9s!")
 
                 for i in range(5):
-                    print(".", end = "", flush = True)
+                    text.display_span(".")
                     time.sleep(0.5)
-                print("")
+                text.linebreak()
 
                 #adds and displays the 3rd card
                 player_hand.append(cards.create_random_card())
@@ -349,28 +359,21 @@ class Baccarat(Room):
     def display_loss(self) -> None:
         """Displays a message when the better loses
         """
-        print("You lost!")
+        text.display_line("You lost!")
 
     def display_win(self) -> None:
         """Displays a message when the better wins
         """
-        print("You won!")
+        text.display_line("You won!")
 
-    def display_hand(self,
-                     hand1: list[cards.Card],
-                     hand2: list[cards.Card]) -> None:
+    def display_hand(self, hand: list[cards.Card]) -> None:
         """displays both the Player's and Banker's Hand,
         hand1 and value1 are the Player's hands and hand's value respectively,
         hand2 and value2 are the Banker's hands and hand's value respectively.
         """
-        print("Player's hand and value")
-        for card in hand1:
-            print(card.as_string())
-        print(self.calculate_value_of_hand(hand1))
-        print("Banker's hand and value")
-        for card in hand2:
-            print(card.as_string())
-        print(self.calculate_value_of_hand(hand2))
+        for card in hand:
+            text.display_line(card.as_string())
+        text.display_line(str(self.calculate_value_of_hand(hand)))
 
 
 class Poker(Room):
@@ -441,6 +444,9 @@ class Poker(Room):
         high = sorted_vals[0]
         return (15, f"High card {cards.NAMES[high] if high!=14 else "Ace"}", sorted_vals)
 
+    def display_hand(self, hand: list[cards.Card]) -> None:
+        """Displays the player's hand"""
+        text.display_line(" ".join([c.as_string() for c in hand]))
 
     def play(self, score: int = 0) -> int:
         """Plays one round of poker. Updates player_score and bot_score.
@@ -455,30 +461,39 @@ class Poker(Room):
         player_score, player_desc, player_ranks = self._evaluate_hand(player_hand)
         bot_score, bot_desc, bot_ranks = self._evaluate_hand(bot_hand)
 
-        print("\n--- Poker Round ---")
-        print("Bot hand: " + " ".join([c.as_string() for c in bot_hand]) + f" → {bot_desc}")
+        text.linebreak()
+        text.display_line("--- Poker Round ---")
+        text.display_span("Bot's hand: ")
+        self.display_hand(bot_hand)
         
-        prompt("Press enter to draw...") # Little do they know its already drawn lol
-        print("Your hand: " + " ".join([c.as_string() for c in player_hand]) + f" → {player_desc}")
+        prompt_continue("Press enter to draw...") # Little do they know its already drawn lol
+        text.display_span("Your hand: ")
+        self.display_hand(player_hand)
 
         if player_score > bot_score:
-            print(f"You win this round! (+{player_score})")
+            text.display_line(f"You win this round! (+{player_score})")
         elif bot_score > player_score:
-            print(f"Bot wins this round! (+{bot_score} to bot)")
+            text.display_line(f"Bot wins this round! (+{bot_score} to bot)")
         else:
             # tie-breaker by ranks
             if player_ranks > bot_ranks:  # Python compares lists lexicographically
-                print(f"You win this round on high card! (+{player_score})")
+                text.display_line(
+                    f"You win this round on high card! (+{player_score})"
+                )
             elif bot_ranks > player_ranks:
-                print(f"Bot wins this round on high card! (+{bot_score} to bot)")
+                text.display_line(
+                    f"Bot wins this round on high card! (+{bot_score} to bot)"
+                )
             else:
-                print(f"This round is a tie! (+{player_score} each)")
+                text.display_line(
+                    f"This round is a tie! (+{player_score} each)"
+                )
 
 
         # Points gained for this round
         net_gain = player_score - bot_score
         self.points += net_gain
-        print(f"Net points this round: {net_gain}")
+        text.display_line(f"Net points this round: {net_gain}")
         return net_gain
 
 
@@ -494,44 +509,48 @@ class Roulette(Room):
         """Call this function to play this room. Takes the current score, and returns 0 as its the last room."""
         chambers, max_rotations = self.shop(score)
 
-        print("Type your last words...\n> ", end = "", flush = True)
+        text.display_line("Type your last words...")
+        text.display_span("> ")
         time.sleep(4)
-        print("\rHa. Fate waits for nobody.")
-        
+        text.display_span("\r")
+        text.display_line("Ha. Fate waits for nobody.")
+
         # Discard extra input and sleep 2.5 seconds.
-        print("\033[8m", end = "", flush = True)
+        text.conceal()
         for _ in range(20):
             time.sleep(0.1)
-            print("\r \r", end = "", flush = True)
+            text.display_span("\r \r")
 
-        print(f"\033[0m\nThe gun cocks. It has {chambers} chambers.")
-        print(f"It could turn {max_rotations} times.")
+        text.unconceal()
+        text.linebreak()
+        text.display_line(f"The gun cocks. It has {chambers} chambers.")
+        text.display_line(f"It could turn {max_rotations} times.")
         time.sleep(2)
 
-        print("")
+        text.linebreak()
         time.sleep(1)
-        print("Ready?")
+        text.display_line("Ready?")
         time.sleep(3)
-        print("Not like I care.\n")
+        text.display_line("Not like I care.")
+        text.linebreak()
         time.sleep(0.5)
 
         rotations = random.randint(max_rotations // 3, max_rotations)
         roulette = self.roulette(rotations, chambers)
 
-        reset = "\033[0m"
-        font = "\033[41;3;1m"
         if roulette == '0':
-            print(f"{font}Pew.", end = "", flush = True)
+            text.display_span(text.warn("Pew."))
             for delay in self.decay(25, increase = 0.1):
-                print(random.choice([",", ".", f"{reset}\n{font}", " ", " "]), end = "", flush = True)
+                text.display_span(
+                    random.choice([text.warn(","), text.warn("."), "\n", " ", " "])
+                )
                 time.sleep(delay)
-            print(reset)
         else:
-            print("Pew.")
+            text.display_line("Pew.")
             time.sleep(1)
-            print("You... Live.")
-        return 0 
-        
+            text.display_line("You... Live.")
+        return 0
+
     def shop(self, current_score: int) -> tuple[int, int]:
         """The shop to buy powerups for russian roulette.
 
@@ -551,18 +570,18 @@ class Roulette(Room):
         next_rotation_cost = lambda: round(30 + 1/(0.005 * (max_rotations - 1) + 0.0001) - (1/4) * (max_rotations - 1))
 
         while True:
-            print("Welcome to the shop. you can buy these: ")
+            text.display_line("Welcome to the shop. you can buy these: ")
             chamber_cost = next_chamber_cost()
-            print(f"1) ${chamber_cost}: Increase number of chambers from {chambers} -> {chambers+1}.")
+            text.display_line(f"1) ${chamber_cost}: Increase number of chambers from {chambers} -> {chambers+1}.")
 
             rotation_cost = next_rotation_cost()
-            print(f"2) ${rotation_cost}: Decrease max number of rotations from {max_rotations} -> {max_rotations-1}")
+            text.display_line(f"2) ${rotation_cost}: Decrease max number of rotations from {max_rotations} -> {max_rotations-1}")
 
-            print(f"3) $0: Decrease number of chambers from {chambers} -> {chambers-1}")
+            text.display_line(f"3) $0: Decrease number of chambers from {chambers} -> {chambers-1}")
 
-            print(f"Your balance is: ${current_score}")
+            text.display_line(f"Your balance is: ${current_score}")
             if current_score < chamber_cost and current_score < rotation_cost:
-                print(f"Whoops! You're too poor to buy anything more.")
+                text.display_line(f"Whoops! You're too poor to buy anything more.")
                 break
             choice = prompt_choice(
                 "Which do you want to buy?",
@@ -571,21 +590,21 @@ class Roulette(Room):
             )
 
             if choice == "1":
-                print("You bought: one more chamber!")
+                text.display_line("You bought: one more chamber!")
                 chambers += 1
                 current_score -= chamber_cost
             elif choice == "2":
-                print("You bought: one less rotation!")
+                text.display_line("You bought: one less rotation!")
                 max_rotations -= 1
                 current_score -= rotation_cost
             elif choice == "3":
-                print("You got: one less chamber...???")
+                text.display_line("You got: one less chamber...???")
                 if chambers <= 3:
-                    print("Oops, the gun cant get smaller!")
+                    text.display_line("Oops, the gun cant get smaller!")
                 else:
                     chambers -= 1
             else:
-                print("You exit the shop.")
+                text.display_line("You exit the shop.")
                 break
         return chambers, max_rotations
 
@@ -602,16 +621,14 @@ class Roulette(Room):
         bullet_chamber = random.randint(1, chambers)
         barrel[bullet_chamber - 1] = "0"
 
-        print(" V")
+        text.display_line(" V")
 
-        print("\r[" + "] [".join(barrel) + "]", end = '', flush = True)
+        text.display_span("\r[" + "] [".join(barrel) + "]")
         for delay in self.decay(iter_num):
             barrel.append(barrel.pop(0)) # Roll the barrel
-            print("\r[" + "] [".join(barrel) + "]", end = '', flush = True)
+            text.display_span("\r[" + "] [".join(barrel) + "]")
             time.sleep(delay) # Delay
-        
-        print("") # End the output
-
+        text.linebreak()
         return barrel[0] 
 
 # --- Example run ---
