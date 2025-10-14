@@ -39,7 +39,7 @@ class Room:
         self.player_score = 0
         self.bot_score = 0
 
-    def play(self, score: int) -> int:
+    def play(self, score: int = 0) -> int:
         """Plays the room. Returns the score gain/loss due to the game.
         Eg. if you gained 20, return 20. If you lost 20, return -20."""
         raise NotImplementedError("play() must be implemented in the subclass.")
@@ -157,7 +157,7 @@ class Blackjack(Room):
             self.points -= 20
             return "You lose 20 points!"
     
-    def play(self, _) -> int:
+    def play(self, score: int = 0) -> int:
         """Plays blackjack 3 rounds"""
         for i in range(3):
             print('')
@@ -189,7 +189,7 @@ class Baccarat(Room):
     def _init_(self):
         super().__init__()
 
-    def play(self, _) -> int:
+    def play(self, score: int = 0) -> int:
         """Baccarat game - rules:
         There will be 2 hands dealt out called Player and Banker.
         The person betting can choose whether to bet on Player, Banker, Tie.
@@ -427,7 +427,7 @@ class Poker(Room):
         return (15, f"High card {NAMES[high] if high!=14 else "Ace"}", sorted_vals)
 
 
-    def play(self, score=0) -> int:
+    def play(self, score: int = 0) -> int:
         """Plays one round of poker. Updates player_score and bot_score.
         Returns net points gained by the player (player_score - bot_score)."""
         deck = self._create_deck()
@@ -475,10 +475,9 @@ class Roulette(Room):
     def __init__(self):
         super().__init__()
 
-    def play(self, current_score: int) -> int:
+    def play(self, score: int = 0) -> int:
         """Call this function to play this room. Takes the current score, and returns 0 as its the last room."""
-
-        chambers, max_rotations = self.shop(current_score)
+        chambers, max_rotations = self.shop(score)
 
         print("Type your last words...\n> ", end = "", flush = True)
         time.sleep(4)
