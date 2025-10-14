@@ -1,4 +1,3 @@
-import time
 from typing import Callable
 
 import cards
@@ -71,13 +70,10 @@ class Room:
 
     def show(self) -> None:
         """Show info about this room"""
-        prompt("[Press enter to continue]")
+        prompt_continue()
         text.clear_previous_line()
         text.display_line(config.rooms[self.name]["description"])
-        for i in range(5):
-            text.display_span(".")
-            time.sleep(1)
-            text.linebreak()
+        text.wait_visible(5)
         text.display_line(config.rooms[self.name]["rules"])
 
 
@@ -296,24 +292,19 @@ class Baccarat(Room):
             else:
                 #slows the game down to show that game has not ended
                 text.display_line("No natural 8s or 9s!")
-
-                for i in range(5):
-                    text.display_span(".")
-                    time.sleep(0.5)
-                text.linebreak()
+                text.wait_visible(2.5, interval=0.5)
 
                 #adds and displays the 3rd card
                 player_hand.append(cards.create_random_card())
                 banker_hand.append(cards.create_random_card())
 
-                #calculates new values
-                player_value = self.calculate_value_of_hand(player_hand)
-                banker_value = self.calculate_value_of_hand(banker_hand)
-
                 #displays the value
-                self.display_hand(player_hand, banker_hand)
+                self.display_hand(player_hand)
+                self.display_hand(banker_hand)
 
                 #calculating winner
+                player_value = self.calculate_value_of_hand(player_hand)
+                banker_value = self.calculate_value_of_hand(banker_hand)
                 if banker_value > player_value:
                     banker_win = True
                 elif banker_value < player_value:
@@ -505,50 +496,57 @@ class Roulette(Room):
     def __init__(self):
         super().__init__()
 
+    def die(self) -> None:
+        """The player dies."""
+        text.display_span(text.warn("Pew."))
+        for delay in text.exponential_increase(25, increase=0.1):
+            text.display_span(
+                random.choice(
+                    [text.warn(","), text.warn("."), "\n", " ", " "]
+                )
+            )
+            text.pause(delay)
+
+    def live(self) -> None:
+        """The player lives."""
+        text.display_line("Pew.")
+        text.pause_medium()
+        text.display_line("You... Live.")
+
     def play(self, score: int = 0) -> int:
         """Call this function to play this room. Takes the current score, and returns 0 as its the last room."""
         chambers, max_rotations = self.shop(score)
 
         text.display_line("Type your last words...")
         text.display_span("> ")
-        time.sleep(4)
-        text.display_span("\r")
+        text.pause_extra_long()
+        text.erase_line()
         text.display_line("Ha. Fate waits for nobody.")
 
         # Discard extra input and sleep 2.5 seconds.
         text.conceal()
-        for _ in range(20):
-            time.sleep(0.1)
-            text.display_span("\r \r")
-
+        text.pause_long()
         text.unconceal()
-        text.linebreak()
+
         text.display_line(f"The gun cocks. It has {chambers} chambers.")
         text.display_line(f"It could turn {max_rotations} times.")
-        time.sleep(2)
+        text.pause_long()
 
         text.linebreak()
-        time.sleep(1)
+        text.pause_medium()
         text.display_line("Ready?")
-        time.sleep(3)
+        text.pause_long()
         text.display_line("Not like I care.")
         text.linebreak()
-        time.sleep(0.5)
+        text.pause_short()
 
         rotations = random.randint(max_rotations // 3, max_rotations)
-        roulette = self.roulette(rotations, chambers)
+        shot = self.animate_roulette(rotations, chambers)
 
-        if roulette == '0':
-            text.display_span(text.warn("Pew."))
-            for delay in self.decay(25, increase = 0.1):
-                text.display_span(
-                    random.choice([text.warn(","), text.warn("."), "\n", " ", " "])
-                )
-                time.sleep(delay)
+        if shot == '0':
+            self.die()
         else:
-            text.display_line("Pew.")
-            time.sleep(1)
-            text.display_line("You... Live.")
+            self.live()
         return 0
 
     def shop(self, current_score: int) -> tuple[int, int]:
@@ -608,26 +606,31 @@ class Roulette(Room):
                 break
         return chambers, max_rotations
 
-    def decay(self, iter_num: int, increase: float = 0.05) -> int:
-        """A decay function for the turning in the barrel"""
-        for i in range(iter_num):
-            yield (i+1) * 0.05
+    def format_barrel(self, barrel: list[str]) -> str:
+        """Formats the barrel for display"""
+        return " ".join([f"[{char}]" for char in barrel])
 
-    def roulette(self, iter_num: int, chambers: int) -> str:
-        """An animated russian roulette"""
+    def animate_roulette(self, iter_num: int, chambers: int) -> str:
+        """An animated russian roulette.
+
+        Returns the chamber that is fired (0 is the bullet).
+        """
+        def rotate(barrel: list[str]) -> None:
+            """Spins the barrel by one position"""
+            barrel.append(barrel.pop(0))
+
         # Create barrel
         barrel = ['.'] * chambers
-        # Add bullet
-        bullet_chamber = random.randint(1, chambers)
-        barrel[bullet_chamber - 1] = "0"
+        barrel[random.randint(0, chambers - 1)] = "0"
 
         text.display_line(" V")
 
-        text.display_span("\r[" + "] [".join(barrel) + "]")
-        for delay in self.decay(iter_num):
-            barrel.append(barrel.pop(0)) # Roll the barrel
-            text.display_span("\r[" + "] [".join(barrel) + "]")
-            time.sleep(delay) # Delay
+        text.display_span(self.format_barrel(barrel))
+        for delay in text.exponential_increase(iter_num):
+            rotate(barrel)
+            text.erase_line()
+            text.display_span(self.format_barrel(barrel))
+            text.pause(delay) # Delay
         text.linebreak()
         return barrel[0] 
 
