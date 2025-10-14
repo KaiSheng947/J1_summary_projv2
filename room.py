@@ -59,19 +59,7 @@ class Blackjack(Room):
     """Room with blackjack.
     Implements the blackjack game"""
     name = "blackjack"
-
-    def __init__(self):
-        super().__init__()
-
-    def draw_card(self) -> str:
-        """Randomly generates cards for player and bot"""
-        # Not simulating a deck; just generating
-        return cards.create_random_card().as_string()
-    
-    def calculate_card(self, hand):
-        """Calculates card value in hand"""
-        # Card values for this game.
-        VALUES = {
+    VALUES = {
         'A': 11, # Ace starts at 11 for blackjack
         '2': 2,
         '3': 3,
@@ -86,19 +74,30 @@ class Blackjack(Room):
         'Q': 10, # Queen
         'K': 10  # King
     }
+
+    def __init__(self):
+        super().__init__()
+
+    def draw_card(self) -> str:
+        """Randomly generates cards for player and bot"""
+        # Not simulating a deck; just generating
+        return cards.create_random_card().as_string()
+
+    def calculate_card(self, hand: list[str]) -> int:
+        """Calculates card value in hand"""
         total = 0
         aces = 0
-        for cards in hand:
-            total += VALUES[cards[5]]
+        for card in hand:
+            total += self.VALUES[card[5]]
             # Account for aces as it can be 11 or 1
-            if cards[5] == 'A':
+            if card[5] == 'A':
                 aces += 1
         while total > 21 and aces:
             total -= 10
             aces -= 1
         return total
 
-    def show_hand(self, owner: str, hand: list[str], total: int):
+    def show_hand(self, owner: str, hand: list[str], total: int) -> None:
         """displays the hand bot and player have"""
         print(f"{owner} hand: {', '.join(hand)} \n{owner} Total: {total}")
 
@@ -227,12 +226,8 @@ class Baccarat(Room):
             player_hand = cards.create_random_hand(2)
             banker_hand = cards.create_random_hand(2)
 
-            #calculates starting value
-            player_value = self.calculate_value(player_hand)
-            banker_value = self.calculate_value(banker_hand)
-            
             #displays hand
-            self.display_hand(player_hand, banker_hand, player_value, banker_value)
+            self.display_hand(player_hand, banker_hand)
 
             if banker_value > player_value:
                 banker_win = True
@@ -280,11 +275,11 @@ class Baccarat(Room):
                 banker_hand.append(cards.create_random_card())
 
                 #calculates new values
-                player_value = self.calculate_value(player_hand)
-                banker_value = self.calculate_value(banker_hand)
+                player_value = self.calculate_value_of_hand(player_hand)
+                banker_value = self.calculate_value_of_hand(banker_hand)
 
                 #displays the value
-                self.display_hand(player_hand, banker_hand, player_value, banker_value)
+                self.display_hand(player_hand, banker_hand)
 
                 #calculating winner
                 if banker_value > player_value:
@@ -322,15 +317,15 @@ class Baccarat(Room):
         
         return points
 
-    def calculate_value(self, hand: list[cards.Card]) -> int:
+    def calculate_value_of_hand(self, hand: list[cards.Card]) -> int:
         """calculates the values of the player's or dealer's hand
         based on baccarat values
         """
-        total_values = 0
+        total_value = 0
         for card in hand:
-            total_values += self.VALUES[card.value]
-        total_values = total_values % 10
-        return total_values
+            total_value += self.VALUES[card.value]
+        total_value = total_value % 10
+        return total_value
 
     def display_loss(self) -> None:
         """Displays a message when the better loses
@@ -341,8 +336,10 @@ class Baccarat(Room):
         """Displays a message when the better wins
         """
         print("You won!")
-    
-    def display_hand(self, hand1, hand2, value1, value2) -> None:
+
+    def display_hand(self,
+                     hand1: list[cards.Card],
+                     hand2: list[cards.Card]) -> None:
         """displays both the Player's and Banker's Hand,
         hand1 and value1 are the Player's hands and hand's value respectively,
         hand2 and value2 are the Banker's hands and hand's value respectively.
@@ -350,11 +347,11 @@ class Baccarat(Room):
         print("Player's hand and value")
         for card in hand1:
             print(card.as_string())
-        print(value1)
+        print(self.calculate_value_of_hand(hand1))
         print("Banker's hand and value")
         for card in hand2:
             print(card.as_string())
-        print(value2)
+        print(self.calculate_value_of_hand(hand2))
 
 
 class Poker(Room):
@@ -374,8 +371,7 @@ class Poker(Room):
     winning hand: three of a kind -> pair -> high card
     """
     name = "poker"
-
-    POKER_VALUES = {
+    VALUES = {
         1: 14,   # Ace counts as highest
         2: 2,
         3: 3,
@@ -394,29 +390,35 @@ class Poker(Room):
     def __init__(self):
         super().__init__()  # initialize points, player_score, bot_score
 
-    def _deal_cards(self, deck, num=3):
-        """deals 3 cards to player and dealer"""
+    def _deal_cards(self, deck: list[cards.Card], num=3) -> list[cards.Card]:
+        """deals num cards to player and dealer"""
         return [deck.pop() for _ in range(num)]
 
-    def _evaluate_hand(self, hand):
-        """calculates the value for poker hands using the simplified rules"""
+    def _evaluate_hand(self, hand: list[cards.Card]) -> tuple[int, str, list[int]]:
+        """Calculates the value for poker hands using the simplified rules.
+        
+        Returns a tuple of (score, description, ranks) where:
+        - score: int, the score value of the hand (higher is better)
+        - description: str, a textual description of the hand
+        - ranks: list[int], a list of card ranks used for tie-breaking
+        """
         values = [card.value for card in hand]
         counts = {v: values.count(v) for v in set(values)}
 
         if 3 in counts.values():
             v = [k for k, c in counts.items() if c == 3][0]
-            return (35, f"Three of a kind ({cards.NAMES[v]})", [self.POKER_VALUES[v]])
+            return (35, f"Three of a kind ({cards.NAMES[v]})", [self.VALUES[v]])
 
         if 2 in counts.values():
             v = [k for k, c in counts.items() if c == 2][0]
             kickers = sorted(
-                [self.POKER_VALUES[val] for val in values if val != v],
+                [self.VALUES[val] for val in values if val != v],
                 reverse=True
             )
-            return (25, f"Pair of {cards.NAMES[v]}s", [self.POKER_VALUES[v]] + kickers)
+            return (25, f"Pair of {cards.NAMES[v]}s", [self.VALUES[v]] + kickers)
 
         # High card case
-        sorted_vals = sorted([self.POKER_VALUES[v] for v in values], reverse=True)
+        sorted_vals = sorted([self.VALUES[v] for v in values], reverse=True)
         high = sorted_vals[0]
         return (15, f"High card {cards.NAMES[high] if high!=14 else "Ace"}", sorted_vals)
 
@@ -458,8 +460,8 @@ class Poker(Room):
         net_gain = player_score - bot_score
         self.points += net_gain
         print(f"Net points this round: {net_gain}")
-
         return net_gain
+
 
 class Roulette(Room):
     """Room with Russian Roulette.
@@ -504,13 +506,11 @@ class Roulette(Room):
             for delay in self.decay(25, increase = 0.1):
                 print(random.choice([",", ".", f"{reset}\n{font}", " ", " "]), end = "", flush = True)
                 time.sleep(delay)
-
             print(reset)
         else:
             print("Pew.")
             time.sleep(1)
             print("You... Live.")
-        
         return 0 
         
     def shop(self, current_score: int) -> list:
@@ -569,7 +569,7 @@ class Roulette(Room):
         for i in range(iter_num):
             yield (i+1) * 0.05
 
-    def roulette(self, iter_num, chambers) -> str:
+    def roulette(self, iter_num: int, chambers: int) -> str:
         """An animated russian roulette"""
         # Create barrel
         barrel = ['.'] * chambers
