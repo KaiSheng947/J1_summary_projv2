@@ -568,9 +568,9 @@ class Roulette(Room):
         text.pause_short()
 
         rotations = random.randint(max_rotations // 3, max_rotations)
-        shot = self.animate_roulette(rotations, chambers)
+        bullet_fired = self.animate_roulette(rotations, chambers)
 
-        if shot == '0':
+        if bullet_fired:
             self.die()
         else:
             self.live()
