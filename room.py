@@ -28,6 +28,25 @@ def prompt(question: str) -> str:
     return INPUT_FUNCTION(question)
 
 
+def prompt_choice(
+        question: str,
+        choices: list[str],
+        reprompt_on_error: bool = True,
+        error_msg: str = "Invalid choice, try again.",
+        separator: str = "/"
+    ) -> str:
+    """Prompt the user to choose from a list of choices.
+    
+    Choices are displayed inline
+    """
+    prompt_str = f"{question} ({separator.join(choices)}): "
+    choice = prompt(prompt_str)
+    while reprompt_on_error and choice not in choices:
+        print(error_msg)
+        choice = prompt(prompt_str)
+    return choice
+
+
 class Room:
     """Parent class of all rooms. 
     Each room has a specific game."""
@@ -115,15 +134,15 @@ class Blackjack(Room):
                 len(player_hand) < 5
                 and self.calculate_hand_value(player_hand) <= 21
         ):
-            redraw = prompt('Do you want to draw again? y/n ')
+            redraw = prompt_choice(
+                'Do you want to draw again?',
+                choices=['y', 'n']
+            )
             if redraw == 'y':
                 player_hand.append(self.draw_card())
                 total = self.calculate_hand_value(player_hand)
                 self.show_hand('Your', player_hand)
-            elif redraw == 'n':
-                break
             else:
-                print("Hmm... That isnt a y or an n! The dungeon assumes you meant n.")
                 break
         
         #Calculating Bot Result
@@ -215,10 +234,10 @@ class Baccarat(Room):
                 
             #checks for validity
 
-            bet = prompt("What would you like to wager on? (Player, Banker, Tie - caps sensitive): ")
-
-            if bet not in ["Player", "Banker", "Tie"]:
-                continue
+            bet = prompt_choice(
+                "What would you like to wager on?",
+                choices=["Player", "Banker", "Tie"]
+            )
 
             #resets the winner to False
             player_win = False
@@ -545,7 +564,11 @@ class Roulette(Room):
             if current_score < chamber_cost and current_score < rotation_cost:
                 print(f"Whoops! You're too poor to buy anything more.")
                 break
-            choice = prompt("Which do you want to buy? Enter anything which is not 1, 2 or 3 to exit the shop:\n> ")
+            choice = prompt_choice(
+                "Which do you want to buy?",
+                choices=["1", "2", "3"],
+                reprompt_on_error=False
+            )
 
             if choice == "1":
                 print("You bought: one more chamber!")
