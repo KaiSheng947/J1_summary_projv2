@@ -30,11 +30,7 @@ class Game:
     
 
     def play(self) -> None:
-        """main game loop
-        """
-        room_list = ["blackjack", "baccarat", "poker", "russian_roulette"]
-        score = 0
-
+        """main game loop"""
         #displays intro
         self.show_intro()
         score = 0
