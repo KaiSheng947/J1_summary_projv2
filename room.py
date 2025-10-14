@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Literal
 
 import cards
 import config
@@ -100,10 +100,16 @@ class Blackjack(Room):
     def __init__(self):
         super().__init__()
 
-    def draw_card(self) -> cards.Card:
-        """Randomly generates cards for player and bot"""
+    def draw_card(self, hand: list[cards.Card], num: int = 1) -> cards.Card:
+        """Draw a card from the deck and add to hand.
+        
+        Returns the last card drawn.
+        """
         # Not simulating a deck; just generating
-        return cards.create_random_card()
+        for _ in range(num):
+            card = cards.create_random_card()
+            hand.append(card)
+        return hand[-1]
 
     def calculate_hand_value(self, hand: list[cards.Card]) -> int:
         """Calculates value of hand"""
@@ -123,43 +129,47 @@ class Blackjack(Room):
         """displays the hand bot and player have"""
         text.display_line(f"{owner} hand: {', '.join(card.as_string() for card in hand)}")
         text.display_line(f"{owner} Total: {self.calculate_hand_value(hand)}")
-
-    def play_round(self) -> str:
-        """play one round of blackjack and return game outcome"""
-        player_hand = [self.draw_card(), self.draw_card()]
-        bot_hand = [self.draw_card(), self.draw_card()]
-        text.display_line(f"Bot 1st card: {bot_hand[0].as_string()}")
-        text.linebreak()
-
-        #Calculating Player Result
-        self.show_hand('Your', player_hand)
-        while (
-                len(player_hand) < 5
-                and self.calculate_hand_value(player_hand) <= 21
-        ):
+    
+    def bot_turn(self, hand: list[cards.Card]) -> None:
+        """Handles the bot's turn"""
+        while 17 < self.calculate_hand_value(hand) < 21:
+            self.draw_card(hand)
+            self.show_hand('Bot', hand)
+            text.linebreak()
+    
+    def player_turn(self, hand: list[cards.Card]) -> None:
+        """Handles the player's turn"""
+        while len(hand) < 5 and self.calculate_hand_value(hand) <= 21:
             redraw = prompt_choice(
                 'Do you want to draw again?',
                 choices=['y', 'n']
             )
             if redraw == 'y':
-                player_hand.append(self.draw_card())
-                total = self.calculate_hand_value(player_hand)
-                self.show_hand('Your', player_hand)
+                self.draw_card(hand)
+                self.show_hand('Your', hand)
             else:
                 break
-        
-        #Calculating Bot Result
-        text.linebreak()
-        while self.calculate_hand_value(bot_hand) < 17:
-            bot_hand.append(self.draw_card())
-            bot_total = self.calculate_hand_value(bot_hand)
-            
-        if self.calculate_hand_value(bot_hand) > 21:
-            self.show_hand('Bot', bot_hand)
-        else:
-            self.show_hand('Bot', bot_hand)
 
-        #Determine winner
+    def play_round(self) -> tuple[list[cards.Card], list[cards.Card]]:
+        """play one round of blackjack and return player and bot hands"""
+        player_hand, bot_hand = [], []
+        self.draw_card(player_hand, 2)
+        self.draw_card(bot_hand, 2)
+        text.display_line(f"Bot 1st card: {bot_hand[0].as_string()}")
+        text.linebreak()
+        # Player turn
+        self.show_hand('Your', player_hand)
+        self.player_turn(player_hand)
+        text.linebreak()        
+        # Bot turn
+        self.bot_turn(bot_hand)
+        self.show_hand('Bot', bot_hand)
+        return player_hand, bot_hand
+
+    def check_outcome(self,
+                      player_hand: list[cards.Card],
+                      bot_hand: list[cards.Card]) -> str:
+        """Check the outcome of the game and return result string"""
         player_total = self.calculate_hand_value(player_hand)
         bot_total = self.calculate_hand_value(bot_hand)
         if player_total > 21 and bot_total > 21:
@@ -187,7 +197,9 @@ class Blackjack(Room):
             text.linebreak()
             text.display_span(f'Round {i+1}! ')
             prompt_continue()
-            text.display_line(self.play_round())
+            player_hand, bot_hand = self.play_round()
+            result = self.check_outcome(player_hand, bot_hand)
+            text.display_line(result)
             text.linebreak()
         return self.points
 
@@ -214,6 +226,42 @@ class Baccarat(Room):
     def _init_(self):
         super().__init__()
 
+    def check_outcome(self,
+                      player_hand: list[cards.Card],
+                      banker_hand: list[cards.Card]) -> str:
+        """Check the outcome of the game and return outcome string"""
+        player_value = self.calculate_value_of_hand(player_hand)
+        banker_value = self.calculate_value_of_hand(banker_hand)
+        if player_value > banker_value:
+            return "Player"
+        elif player_value < banker_value:
+            return "Banker"
+        else:
+            return "Tie"
+
+    def draw_card(self, hand: list[cards.Card], num: int = 1) -> cards.Card:
+        """Draw a card from the deck and add to hand.
+        
+        Returns the last card drawn.
+        """
+        # Not simulating a deck; just generating
+        for _ in range(num):
+            card = cards.create_random_card()
+            hand.append(card)
+        return hand[-1]
+
+    def handle_bet(self, bet: str, outcome: str) -> int:
+        """Handles the bet and returns points gained/lost"""
+        if bet == outcome:
+            self.display_win()
+            if outcome == "Tie":
+                return 150  # Tie pays more
+            else:
+                return 100
+        else:
+            self.display_loss()
+            return -100
+
     def play(self, score: int = 0) -> int:
         """Baccarat game - rules:
         There will be 2 hands dealt out called Player and Banker.
@@ -225,29 +273,16 @@ class Baccarat(Room):
         the comparison will be made there. If there are no natural 8s or 9s, a third card will be drawn.
         The comparison will be made then and the game loops.
         """
-
-        #endings
-        game_over = False
         points = 0
         rounds = 1
     
         while rounds <= 3:
-            
-            #displays current points and round
             text.display_line(f"Current Points: {points}")
             text.display_line(f"Current Round: {rounds}")
-
             bet = prompt_choice(
                 "What would you like to wager on?",
                 choices=["Player", "Banker", "Tie"]
             )
-
-            #resets the winner to False
-            player_win = False
-            banker_win = False
-            tie = False
-            
-            #displays starting hand
             player_hand = cards.create_random_hand(2)
             banker_hand = cards.create_random_hand(2)
             text.display_line("Player's hand and value")
@@ -255,85 +290,24 @@ class Baccarat(Room):
             text.display_line("Banker's hand and value")
             self.display_hand(banker_hand)
 
+            # early win condition check
             player_value = self.calculate_value_of_hand(player_hand)
             banker_value = self.calculate_value_of_hand(banker_hand)
-            if banker_value > player_value:
-                banker_win = True
-            elif banker_value < player_value:
-                player_win = True
-            else:
-                tie = True
-
-            #condition for game to end early
             if banker_value >= 8 or player_value >= 8:
-                if bet == "Player":
-                    if player_win == True:
-                        points += 100
-                        self.display_win()
-                    else:
-                        points -= 100
-                        self.display_loss()
-                elif bet == "Banker":
-                    if banker_win == True:
-                        points += 100
-                        self.display_win()
-                    else:
-                        points -= 100
-                        self.display_loss()
-                else:
-                    #more points are rewarded for winning with a tie
-                    if tie == True:
-                        points += 150
-                        self.display_win()
-                    else:
-                        points -= 100
-                        self.display_loss()
-
+                outcome = self.check_outcome(player_hand, banker_hand)
+                points += self.handle_bet(bet, outcome)
             else:
-                #slows the game down to show that game has not ended
+                # slows the game down to show that game has not ended
                 text.display_line("No natural 8s or 9s!")
-                text.wait_visible(2.5, interval=0.5)
-
-                #adds and displays the 3rd card
-                player_hand.append(cards.create_random_card())
-                banker_hand.append(cards.create_random_card())
-
-                #displays the value
+                text.wait_visible(seconds=2.5, interval=0.5)
+                # draw 3rd card
+                self.draw_card(player_hand)
+                self.draw_card(banker_hand)
                 self.display_hand(player_hand)
                 self.display_hand(banker_hand)
 
-                #calculating winner
-                player_value = self.calculate_value_of_hand(player_hand)
-                banker_value = self.calculate_value_of_hand(banker_hand)
-                if banker_value > player_value:
-                    banker_win = True
-                elif banker_value < player_value:
-                    player_win = True
-                else:
-                    tie = True
-
-                if bet == "Player":
-                    if player_win == True:
-                        points += 100
-                        self.display_win()
-                    else:
-                        points -= 100
-                        self.display_loss()
-                elif bet == "Banker":
-                    if banker_win == True:
-                        points += 100
-                        self.display_win()
-                    else:
-                        points -= 100
-                        self.display_loss()
-                else:
-                    #more points are rewarded for winning with a tie
-                    if tie == True:
-                        points += 150
-                        self.display_win()
-                    else:
-                        points -= 100
-                        self.display_loss()
+                outcome = self.check_outcome(player_hand, banker_hand)
+                points += self.handle_bet(bet, outcome)
             rounds += 1        
         return points
 
@@ -402,10 +376,24 @@ class Poker(Room):
 
     def __init__(self):
         super().__init__()  # initialize points, player_score, bot_score
+        self.deck = cards.create_deck()
 
-    def _deal_cards(self, deck: list[cards.Card], num=3) -> list[cards.Card]:
+    def _count_hand(self, hand: list[cards.Card]) -> dict[int, int]:
+        """Counts occurrences of each card value in hand"""
+        counts = {}
+        for card in hand:
+            counts[card.value] = counts.get(card.value, 0) + 1
+        return counts
+
+    def _deal_cards(self, num=3) -> list[cards.Card]:
         """deals num cards to player and dealer"""
-        return [deck.pop() for _ in range(num)]
+        # Sort hand by card value descending
+        hand = sorted(
+            [self.deck.pop() for _ in range(num)],
+            key=lambda c: c.value,
+            reverse=True
+        )
+        return hand
 
     def _evaluate_hand(self, hand: list[cards.Card]) -> tuple[int, str, list[int]]:
         """Calculates the value for poker hands using the simplified rules.
@@ -415,52 +403,78 @@ class Poker(Room):
         - description: str, a textual description of the hand
         - ranks: list[int], a list of card ranks used for tie-breaking
         """
-        values = [card.value for card in hand]
-        counts = {v: values.count(v) for v in set(values)}
-
-        if 3 in counts.values():
-            v = [k for k, c in counts.items() if c == 3][0]
-            return (35, f"Three of a kind ({cards.NAMES[v]})", [self.VALUES[v]])
-
-        if 2 in counts.values():
-            v = [k for k, c in counts.items() if c == 2][0]
-            kickers = sorted(
-                [self.VALUES[val] for val in values if val != v],
+        _counts = self._count_hand(hand)
+        # Sort counts by poker value descending
+        sorted_counts = {
+            card_value: _counts[card_value]
+            for card_value in sorted(
+                _counts,
+                key=lambda c_value: self.VALUES[c_value],
                 reverse=True
             )
-            return (25, f"Pair of {cards.NAMES[v]}s", [self.VALUES[v]] + kickers)
+        }
+
+        for card_value, card_count in sorted_counts.items():
+            # Three of a kind case
+            if card_count == 3:
+                return (
+                    35,
+                    f"Three of a kind ({cards.NAMES[card_value]})",
+                    [self.VALUES[card_value]]
+                )
+            # Pair case
+            elif card_count == 2:
+                pair_counts = {
+                    card_value: count
+                    for card_value, count in sorted_counts.items()
+                    if count == 2
+                }
+                largest_pair_value = list(pair_counts.keys())[0]
+                return (
+                    25,
+                    f"Pair of {cards.NAMES[largest_pair_value]}s",
+                    [
+                        self.VALUES[card_value]
+                        for card_value in sorted_counts.keys()
+                    ]
+                )
 
         # High card case
-        sorted_vals = sorted([self.VALUES[v] for v in values], reverse=True)
-        high = sorted_vals[0]
-        return (15, f"High card {cards.NAMES[high] if high!=14 else "Ace"}", sorted_vals)
+        largest_single_value = list(sorted_counts.keys())[0]
+        return (
+            15,
+            f"High card {cards.NAMES[largest_single_value]}",
+            list(sorted_counts.keys())
+        )
+
+    def _reset_deck(self) -> None:
+        """Resets and shuffles the deck"""
+        self.deck = cards.create_deck()
+        random.shuffle(self.deck)
 
     def display_hand(self, hand: list[cards.Card]) -> None:
         """Displays the player's hand"""
         text.display_line(" ".join([c.as_string() for c in hand]))
 
-    def play(self, score: int = 0) -> int:
-        """Plays one round of poker. Updates player_score and bot_score.
-        Returns net points gained by the player (player_score - bot_score)."""
-        deck = cards.create_deck()
-        random.shuffle(deck)
+    def take_turn(self, owner: str, hand: list[cards.Card]) -> tuple[int, str, list[int]]:
+        """Handles a turn for either the player or the bot"""
+        if owner == "Bot":
+            text.display_span("Bot's hand: ")
+            self.display_hand(hand)
+        else:
+            text.display_span("Your hand: ")
+            self.display_hand(hand)
+        return self._evaluate_hand(hand)
 
-        player_hand = self._deal_cards(deck, 3)
-        bot_hand = self._deal_cards(deck, 3)
-
-        # Update scores
-        player_score, player_desc, player_ranks = self._evaluate_hand(player_hand)
-        bot_score, bot_desc, bot_ranks = self._evaluate_hand(bot_hand)
-
-        text.linebreak()
-        text.display_line("--- Poker Round ---")
-        text.display_span("Bot's hand: ")
-        self.display_hand(bot_hand)
+    def check_outcome(self,
+                      player_score: int,
+                      bot_score: int,
+                      player_ranks: list[int],
+                      bot_ranks: list[int]) -> int:
+        """Check the outcome of the game and display result.
         
-        prompt_continue("Press enter to draw...") # Little do they know its already drawn lol
-        text.display_span("Your hand: ")
-        self.display_hand(player_hand)
-
+        Return the net points gained by the player.
+        """
         if player_score > bot_score:
             text.display_line(f"You win this round! (+{player_score})")
         elif bot_score > player_score:
@@ -479,10 +493,23 @@ class Poker(Room):
                 text.display_line(
                     f"This round is a tie! (+{player_score} each)"
                 )
+        return player_score - bot_score
 
+    def play(self, score: int = 0) -> int:
+        """Plays one round of poker. Updates player_score and bot_score.
+        Returns net points gained by the player (player_score - bot_score)."""
+        self._reset_deck()
+        text.linebreak()
+        text.display_line("--- Poker Round ---")
+        bot_hand = self._deal_cards(3)
+        bot_score, bot_desc, bot_ranks = self.take_turn("Bot", bot_hand)
+        prompt_continue("Press enter to draw...")
+        player_hand = self._deal_cards(3)
+        player_score, player_desc, player_ranks = self.take_turn("You", player_hand)
 
-        # Points gained for this round
-        net_gain = player_score - bot_score
+        net_gain = self.check_outcome(
+            player_score, bot_score, player_ranks, bot_ranks
+        )
         self.points += net_gain
         text.display_line(f"Net points this round: {net_gain}")
         return net_gain
@@ -610,13 +637,13 @@ class Roulette(Room):
         """Formats the barrel for display"""
         return " ".join([f"[{char}]" for char in barrel])
 
-    def animate_roulette(self, iter_num: int, chambers: int) -> str:
+    def animate_roulette(self, rotations: int, chambers: int) -> bool:
         """An animated russian roulette.
 
-        Returns the chamber that is fired (0 is the bullet).
+        Returns True if the bullet is fired.
         """
         def rotate(barrel: list[str]) -> None:
-            """Spins the barrel by one position"""
+            """Rotate the barrel by one position"""
             barrel.append(barrel.pop(0))
 
         # Create barrel
@@ -624,15 +651,14 @@ class Roulette(Room):
         barrel[random.randint(0, chambers - 1)] = "0"
 
         text.display_line(" V")
-
         text.display_span(self.format_barrel(barrel))
-        for delay in text.exponential_increase(iter_num):
+        for delay in text.exponential_increase(rotations):
             rotate(barrel)
             text.erase_line()
             text.display_span(self.format_barrel(barrel))
-            text.pause(delay) # Delay
+            text.pause(delay)
         text.linebreak()
-        return barrel[0] 
+        return barrel[0] == "0"
 
 # --- Example run ---
 if __name__ == "__main__":
