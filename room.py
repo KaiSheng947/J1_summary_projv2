@@ -28,34 +28,39 @@ def prompt(question: str) -> str:
     The pattern is to allow for automated testing."""
     return INPUT_FUNCTION(question)
 
+
 class Room:
     """Parent class of all rooms. 
     Each room has a specific game."""
+    name: str
+
     def __init__(self):
         self.points = 0
         self.player_score = 0
         self.bot_score = 0
-    
-    def play(score: int) -> int:
+
+    def play(self, score: int) -> int:
         """Plays the room. Returns the score gain/loss due to the game.
         Eg. if you gained 20, return 20. If you lost 20, return -20."""
-        raise NotImplementedError
-    
-    def show(self, current_room):
+        raise NotImplementedError("play() must be implemented in the subclass.")
+
+    def show(self) -> None:
         """Show info about this room"""
         prompt("[Press enter to continue]")
         print("\033[1A\r\033[2K")
-        print(config.rooms[current_room]["description"])
+        print(config.rooms[self.name]["description"])
         for i in range(5):
-                    print(".", end = "", flush = True)
-                    time.sleep(1)
-                    print("")
-        print(config.rooms[current_room]["rules"])
+            print(".", end="", flush=True)
+            time.sleep(1)
+            print("")
+        print(config.rooms[self.name]["rules"])
 
 
 class Blackjack(Room):
     """Room with blackjack.
     Implements the blackjack game"""
+    name = "blackjack"
+
     def __init__(self):
         super().__init__()
 
@@ -152,7 +157,7 @@ class Blackjack(Room):
             self.points -= 20
             return "You lose 20 points!"
     
-    def play(self, _):
+    def play(self, _) -> int:
         """Plays blackjack 3 rounds"""
         for i in range(3):
             print('')
@@ -164,6 +169,8 @@ class Blackjack(Room):
 class Baccarat(Room):
     """Room with Baccarat.
     Implements the Baccarat Game"""
+    name = "baccarat"
+
     VALUES = { # Card values for this game.
         1: 1, 
         2: 2,
@@ -180,9 +187,9 @@ class Baccarat(Room):
         13: 10  # King
     }
     def _init_(self):
-        super()._init_()
+        super().__init__()
 
-    def play(self, _):
+    def play(self, _) -> int:
         """Baccarat game - rules:
         There will be 2 hands dealt out called Player and Banker.
         The person betting can choose whether to bet on Player, Banker, Tie.
@@ -351,6 +358,7 @@ class Baccarat(Room):
             print(card.as_string())
         print(value2)
 
+
 class Poker(Room):
     """
     Room 3 - poker (for kids)
@@ -367,6 +375,8 @@ class Poker(Room):
 
     winning hand: three of a kind -> pair -> high card
     """
+    name = "poker"
+
     POKER_VALUES = {
         1: 14,   # Ace counts as highest
         2: 2,
@@ -458,6 +468,10 @@ class Poker(Room):
         return net_gain
 
 class Roulette(Room):
+    """Room with Russian Roulette.
+    Implements the Russian Roulette Game"""
+    name = "russian_roulette"
+
     def __init__(self):
         super().__init__()
 
