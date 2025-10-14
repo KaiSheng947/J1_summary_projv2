@@ -576,62 +576,98 @@ class Roulette(Room):
             self.live()
         return 0
 
-    def shop(self, current_score: int) -> tuple[int, int]:
+    def shop(self, score: int) -> tuple[int, int]:
         """The shop to buy powerups for russian roulette.
 
         Returns a tuple of (chambers, max_rotations).
         """
-        chambers = 6
-        max_rotations = 30
-
-        # Powerups: 
-        # 1. Buy more chambers
-        # 2. Buy less rotations
-
-        # See graphs here: https://www.desmos.com/calculator/ouyracensx
-        # Each cost increases
-        next_chamber_cost = lambda: 10 + 3 * (chambers - 6) # First buy is 10pts, incereases by 3 per buy.
-        # Increasing cost for each additional upgrade, cost 900 to completely eliminate risk.
-        next_rotation_cost = lambda: round(30 + 1/(0.005 * (max_rotations - 1) + 0.0001) - (1/4) * (max_rotations - 1))
-
-        while True:
-            text.display_line("Welcome to the shop. you can buy these: ")
-            chamber_cost = next_chamber_cost()
-            text.display_line(f"1) ${chamber_cost}: Increase number of chambers from {chambers} -> {chambers+1}.")
-
-            rotation_cost = next_rotation_cost()
-            text.display_line(f"2) ${rotation_cost}: Decrease max number of rotations from {max_rotations} -> {max_rotations-1}")
-
-            text.display_line(f"3) $0: Decrease number of chambers from {chambers} -> {chambers-1}")
-
-            text.display_line(f"Your balance is: ${current_score}")
-            if current_score < chamber_cost and current_score < rotation_cost:
-                text.display_line(f"Whoops! You're too poor to buy anything more.")
-                break
-            choice = prompt_choice(
-                "Which do you want to buy?",
-                choices=["1", "2", "3"],
-                reprompt_on_error=False
-            )
-
-            if choice == "1":
-                text.display_line("You bought: one more chamber!")
-                chambers += 1
-                current_score -= chamber_cost
-            elif choice == "2":
-                text.display_line("You bought: one less rotation!")
-                max_rotations -= 1
-                current_score -= rotation_cost
-            elif choice == "3":
-                text.display_line("You got: one less chamber...???")
-                if chambers <= 3:
-                    text.display_line("Oops, the gun cant get smaller!")
+        class RouletteShop:
+            """Handles the shop logic for the roulette game."""
+        
+            def __init__(self, score: int):
+                self.score = score
+                self.chambers = 6
+                self.max_rotations = 30
+                self.chamber_cost = 10
+                self.rotation_cost = 30
+        
+            def display_options(self) -> None:
+                """Displays the shop options."""
+                text.display_line("Welcome to the shop. you can buy these: ")
+                text.display_line(f"1) ${self.chamber_cost}: Increase number of chambers from {self.chambers} -> {self.chambers+1}.")
+                text.display_line(f"2) ${self.rotation_cost}: Decrease max number of rotations from {self.max_rotations} -> {self.max_rotations-1}")
+                text.display_line(f"3) $0: Decrease number of chambers from {self.chambers} -> {self.chambers-1}")
+                text.display_line(f"Your balance is: ${self.score}")
+        
+            def buy_chamber(self, n: Literal[1] | Literal[-1]) -> None:
+                """Attempts to buy n chambers.
+                
+                Validate whether player has enough score to buy first.
+                """
+                if n == -1:  # Decrease chambers
+                    text.display_line("You got: one less chamber...???")
+                    if self.chambers <= 3:
+                        text.display_line("Oops, the gun cant get smaller!")
+                    else:
+                        self.chambers -= 1
+                elif n == 1:  # Increase chambers
+                    text.display_line("You bought: one more chamber!")
+                    self.chambers += 1
+                    self.score -= self.chamber_cost
+                    self.chamber_cost += 3  # Increase cost for next purchase
                 else:
-                    chambers -= 1
-            else:
-                text.display_line("You exit the shop.")
-                break
-        return chambers, max_rotations
+                    raise ValueError("n must be 1 or -1")
+        
+            def buy_rotation(self) -> None:
+                """Attempts to buy one less rotation.
+                
+                Validate whether player has enough score to buy first.
+                """
+                text.display_line("You bought: one less rotation!")
+                self.max_rotations -= 1
+                self.score -= self.rotation_cost
+                # Increasing cost for each additional upgrade, cost 900 to completely eliminate risk.
+                self.rotation_cost += round(
+                    1/(0.005 * (self.max_rotations - 1) + 0.0001) - (1/4) * (self.max_rotations - 1)
+                )
+            
+            def prompt_purchase(self) -> str | None:
+                """Prompts the user to make a purchase."""
+                if (
+                        self.score < self.chamber_cost
+                        and self.score < self.rotation_cost
+                ):
+                    text.display_line(
+                        "Whoops! You're too poor to buy anything more."
+                    )
+                    return None
+                choice = prompt_choice(
+                    "Which do you want to buy (any invalid option to quit)?",
+                    choices=["1", "2", "3"],
+                    reprompt_on_error=False
+                )
+                return choice
+        
+            def visit(self) -> None:
+                """Visits the shop and allows the player to buy powerups."""
+                while True:
+                    self.display_options()
+                    choice = self.prompt_purchase()
+                    if choice is None:
+                        break
+                    elif choice == "1":
+                        self.buy_chamber(1)
+                    elif choice == "2":
+                        self.buy_rotation()
+                    elif choice == "3":
+                        self.buy_chamber(-1)
+                    else:
+                        text.display_line("You exit the shop.")
+                        break
+        
+        shop = RouletteShop(score)
+        shop.visit()
+        return shop.chambers, shop.max_rotations
 
     def format_barrel(self, barrel: list[str]) -> str:
         """Formats the barrel for display"""
