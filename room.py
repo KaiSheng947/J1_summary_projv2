@@ -1,13 +1,11 @@
 import time
+
 import cards
+import config
 import random
 
 from cards import Card, NAMES, SUIT_SYMBOL
 
-import yaml
-
-with open("text.yaml", "r") as file:
-    config = yaml.safe_load(file)
 
 class InputOverride:
     def __init__(self, override):
@@ -47,12 +45,12 @@ class Room:
         """Show info about this room"""
         prompt("[Press enter to continue]")
         print("\033[1A\r\033[2K")
-        print(config["rooms"][current_room]["description"])
+        print(config.rooms[current_room]["description"])
         for i in range(5):
                     print(".", end = "", flush = True)
                     time.sleep(1)
                     print("")
-        print(config["rooms"][current_room]["rules"])
+        print(config.rooms[current_room]["rules"])
 
 
 class Blackjack(Room):

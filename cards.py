@@ -54,6 +54,7 @@ class Card:
         """Checks if this card is equivalent to the other card"""
         return self.as_string() == other.as_string()
 
+
 def generate_card() -> Card:
     """Randomly generates the values
     and the suit symbol of a card 

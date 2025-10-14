@@ -1,3 +1,4 @@
+import config
 from room import (
     Blackjack,
     Baccarat,
@@ -5,12 +6,6 @@ from room import (
     Roulette,
     Room
 )
-
-import time
-import yaml
-
-with open("text.yaml", "r") as file:
-    config = yaml.safe_load(file)
 
 
 class Game:
@@ -44,19 +39,19 @@ class Game:
 
     def show_intro(self):
         """Display the game intro"""
-        print(config["text"]["WELCOME"])
+        print(config.text["WELCOME"])
 
     def is_gameover(self):
         """Indicates end of game"""
-        print(config["text"]["EXIT_MSG"])
+        print(config.text["EXIT_MSG"])
 
     def defeat(self):
         """Display the defeat screen"""
-        print(config["text"]["GAME_LOSE"])
+        print(config.text["GAME_LOSE"])
 
     def victory(self):
         """Display the victory screen"""
-        print(config["text"]["GAME_LOSE"])
+        print(config.text["GAME_WIN"])
 
     
 
