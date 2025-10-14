@@ -5,8 +5,6 @@ import cards
 import config
 import random
 
-from cards import Card, NAMES, SUIT_SYMBOL
-
 
 class InputOverride:
     def __init__(self, override):
@@ -324,7 +322,7 @@ class Baccarat(Room):
         
         return points
 
-    def calculate_value(self, hand: list[Card]) -> int:
+    def calculate_value(self, hand: list[cards.Card]) -> int:
         """calculates the values of the player's or dealer's hand
         based on baccarat values
         """
@@ -407,7 +405,7 @@ class Poker(Room):
 
         if 3 in counts.values():
             v = [k for k, c in counts.items() if c == 3][0]
-            return (35, f"Three of a kind ({NAMES[v]})", [self.POKER_VALUES[v]])
+            return (35, f"Three of a kind ({cards.NAMES[v]})", [self.POKER_VALUES[v]])
 
         if 2 in counts.values():
             v = [k for k, c in counts.items() if c == 2][0]
@@ -415,12 +413,12 @@ class Poker(Room):
                 [self.POKER_VALUES[val] for val in values if val != v],
                 reverse=True
             )
-            return (25, f"Pair of {NAMES[v]}s", [self.POKER_VALUES[v]] + kickers)
+            return (25, f"Pair of {cards.NAMES[v]}s", [self.POKER_VALUES[v]] + kickers)
 
         # High card case
         sorted_vals = sorted([self.POKER_VALUES[v] for v in values], reverse=True)
         high = sorted_vals[0]
-        return (15, f"High card {NAMES[high] if high!=14 else "Ace"}", sorted_vals)
+        return (15, f"High card {cards.NAMES[high] if high!=14 else "Ace"}", sorted_vals)
 
 
     def play(self, score: int = 0) -> int:
