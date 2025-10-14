@@ -60,64 +60,66 @@ class Blackjack(Room):
     Implements the blackjack game"""
     name = "blackjack"
     VALUES = {
-        'A': 11, # Ace starts at 11 for blackjack
-        '2': 2,
-        '3': 3,
-        '4': 4,
-        '5': 5,
-        '6': 6,
-        '7': 7,
-        '8': 8,
-        '9': 9,
-        '1': 10,
-        'J': 10, # Jack
-        'Q': 10, # Queen
-        'K': 10  # King
+        1: 11, # Ace starts at 11 for blackjack
+        2: 2,
+        3: 3,
+        4: 4,
+        5: 5,
+        6: 6,
+        7: 7,
+        8: 8,
+        9: 9,
+        10: 10,
+        11: 10, # Jack
+        12: 10, # Queen
+        13: 10  # King
     }
 
     def __init__(self):
         super().__init__()
 
-    def draw_card(self) -> str:
+    def draw_card(self) -> cards.Card:
         """Randomly generates cards for player and bot"""
         # Not simulating a deck; just generating
-        return cards.create_random_card().as_string()
+        return cards.create_random_card()
 
-    def calculate_card(self, hand: list[str]) -> int:
-        """Calculates card value in hand"""
+    def calculate_hand_value(self, hand: list[cards.Card]) -> int:
+        """Calculates value of hand"""
         total = 0
         aces = 0
         for card in hand:
-            total += self.VALUES[card[5]]
+            total += self.VALUES[card.value]
             # Account for aces as it can be 11 or 1
-            if card[5] == 'A':
+            if card.value == 1:
                 aces += 1
         while total > 21 and aces:
             total -= 10
             aces -= 1
         return total
 
-    def show_hand(self, owner: str, hand: list[str], total: int) -> None:
+    def show_hand(self, owner: str, hand: list[cards.Card]) -> None:
         """displays the hand bot and player have"""
-        print(f"{owner} hand: {', '.join(hand)} \n{owner} Total: {total}")
+        print(f"{owner} hand: {', '.join(card.as_string() for card in hand)}")
+        print(f"{owner} Total: {self.calculate_hand_value(hand)}")
 
     def play_round(self) -> str:
         """play one round of blackjack and return game outcome"""
         player_hand = [self.draw_card(), self.draw_card()]
-        total = self.calculate_card(player_hand)
         bot_hand = [self.draw_card(), self.draw_card()]
-        bot_total = self.calculate_card(bot_hand)
-        print(f"Bot 1st card: {bot_hand[0]}")
+        print(f"Bot 1st card: {bot_hand[0].as_string()}")
         print('')
 
         #Calculating Player Result
-        self.show_hand('Your', player_hand, total)
-        while len(player_hand) < 5 and total <= 21:
+        self.show_hand('Your', player_hand)
+        while (
+                len(player_hand) < 5
+                and self.calculate_hand_value(player_hand) <= 21
+        ):
             redraw = prompt('Do you want to draw again? y/n ')
             if redraw == 'y':
                 player_hand.append(self.draw_card())
-                total = self.calculate_card(player_hand)
-                self.show_hand('Your', player_hand, total)
+                total = self.calculate_hand_value(player_hand)
+                self.show_hand('Your', player_hand)
             elif redraw == 'n':
                 break
             else:
@@ -126,29 +128,31 @@ class Blackjack(Room):
         
         #Calculating Bot Result
         print('')
-        while bot_total < 17:
+        while self.calculate_hand_value(bot_hand) < 17:
             bot_hand.append(self.draw_card())
-            bot_total = self.calculate_card(bot_hand)
+            bot_total = self.calculate_hand_value(bot_hand)
             
-        if bot_total > 21:
-            self.show_hand('Bot', bot_hand, bot_total)
+        if self.calculate_hand_value(bot_hand) > 21:
+            self.show_hand('Bot', bot_hand)
         else:
-            self.show_hand('Bot', bot_hand, bot_total)
+            self.show_hand('Bot', bot_hand)
 
         #Determine winner
-        if total > 21 and bot_total > 21:
+        player_total = self.calculate_hand_value(player_hand)
+        bot_total = self.calculate_hand_value(bot_hand)
+        if player_total > 21 and bot_total > 21:
             self.points += 100
             return "Both bust! You win 100 points"
         elif bot_total > 21:
             self.points += 100
             return "Bot busts! You win 100 points"
-        elif total > 21:
+        elif player_total > 21:
             self.points -= 20
             return "You bust! You lose 20 points."
-        elif total == bot_total:
+        elif player_total == bot_total:
             self.points -= 20
             return "Tie! You lose 20 points!"
-        elif total > bot_total:
+        elif player_total > bot_total:
             self.points += 100
             return "You win 100 points!"
         else:
@@ -220,15 +224,14 @@ class Baccarat(Room):
             player_win = False
             banker_win = False
             tie = False
-        
             
             #displays starting hand
             player_hand = cards.create_random_hand(2)
             banker_hand = cards.create_random_hand(2)
-
-            #displays hand
             self.display_hand(player_hand, banker_hand)
 
+            player_value = self.calculate_value_of_hand(player_hand)
+            banker_value = self.calculate_value_of_hand(banker_hand)
             if banker_value > player_value:
                 banker_win = True
             elif banker_value < player_value:
@@ -311,10 +314,7 @@ class Baccarat(Room):
                     else:
                         points -= 100
                         self.display_loss()
-
-            #closer to base case
-            rounds += 1
-        
+            rounds += 1        
         return points
 
     def calculate_value_of_hand(self, hand: list[cards.Card]) -> int:
@@ -513,8 +513,11 @@ class Roulette(Room):
             print("You... Live.")
         return 0 
         
-    def shop(self, current_score: int) -> list:
-        """The shop to buy powerups for russian roulette. Returns powerups."""
+    def shop(self, current_score: int) -> tuple[int, int]:
+        """The shop to buy powerups for russian roulette.
+
+        Returns a tuple of (chambers, max_rotations).
+        """
         chambers = 6
         max_rotations = 30
 
@@ -561,7 +564,6 @@ class Roulette(Room):
             else:
                 print("You exit the shop.")
                 break
-    
         return chambers, max_rotations
 
     def decay(self, iter_num: int, increase: float = 0.05) -> int:
