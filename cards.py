@@ -55,7 +55,7 @@ class Card:
         return self.as_string() == other.as_string()
 
 
-def generate_card() -> Card:
+def create_random_card() -> Card:
     """Randomly generates the values
     and the suit symbol of a card 
     for the class Card 
@@ -66,6 +66,22 @@ def generate_card() -> Card:
     card = Card(random_suit, random_value)
     return card
 
+def create_random_hand(cards: int) -> list[Card]:
+    """Creates a random hand of cards"""
+    hand = []
+    for _ in range(cards):
+        hand.append(create_random_card())
+    return hand
+
+def create_deck() -> list[Card]:
+    """Creates a standard deck of 52 cards"""
+    deck = []
+    for suit in SUIT_SYMBOL:
+        for value in NAMES:
+            deck.append(Card(suit, value))
+    return deck
+
+
 if __name__ == "__main__":
-    card = generate_card()
+    card = create_random_card()
     print(card.as_string())

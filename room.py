@@ -1,4 +1,5 @@
 import time
+from typing import Callable
 
 import cards
 import config
@@ -22,7 +23,7 @@ class InputOverride:
         global INPUT_FUNCTION
         INPUT_FUNCTION = self.original
 
-INPUT_FUNCTION = input
+INPUT_FUNCTION: Callable[[object], str] = input
 def prompt(question: str) -> str:
     """This function behaves the same as input().
     The pattern is to allow for automated testing."""
@@ -67,7 +68,7 @@ class Blackjack(Room):
     def draw_card(self) -> str:
         """Randomly generates cards for player and bot"""
         # Not simulating a deck; just generating
-        return cards.generate_card().as_string()
+        return cards.create_random_card().as_string()
     
     def calculate_card(self, hand):
         """Calculates card value in hand"""
@@ -225,8 +226,8 @@ class Baccarat(Room):
         
             
             #displays starting hand
-            player_hand = [cards.generate_card(), cards.generate_card()]
-            banker_hand = [cards.generate_card(), cards.generate_card()]
+            player_hand = cards.create_random_hand(2)
+            banker_hand = cards.create_random_hand(2)
 
             #calculates starting value
             player_value = self.calculate_value(player_hand)
@@ -277,8 +278,8 @@ class Baccarat(Room):
                 print("")
 
                 #adds and displays the 3rd card
-                player_hand.append(cards.generate_card())
-                banker_hand.append(cards.generate_card())
+                player_hand.append(cards.create_random_card())
+                banker_hand.append(cards.create_random_card())
 
                 #calculates new values
                 player_value = self.calculate_value(player_hand)
@@ -322,15 +323,14 @@ class Baccarat(Room):
             rounds += 1
         
         return points
-        
 
-    def calculate_value(self, hand: list) -> int:
+    def calculate_value(self, hand: list[Card]) -> int:
         """calculates the values of the player's or dealer's hand
         based on baccarat values
         """
         total_values = 0
         for card in hand:
-            total_values += self.VALUES.get(card.value)
+            total_values += self.VALUES[card.value]
         total_values = total_values % 10
         return total_values
 
@@ -344,7 +344,7 @@ class Baccarat(Room):
         """
         print("You won!")
     
-    def display_hand(self, hand1, hand2, value1, value2) -> str:
+    def display_hand(self, hand1, hand2, value1, value2) -> None:
         """displays both the Player's and Banker's Hand,
         hand1 and value1 are the Player's hands and hand's value respectively,
         hand2 and value2 are the Banker's hands and hand's value respectively.
@@ -396,10 +396,6 @@ class Poker(Room):
     def __init__(self):
         super().__init__()  # initialize points, player_score, bot_score
 
-    def _create_deck(self):
-        """creates a deck of poker cards"""
-        return [Card(suit, value) for suit in SUIT_SYMBOL for value in NAMES]
-
     def _deal_cards(self, deck, num=3):
         """deals 3 cards to player and dealer"""
         return [deck.pop() for _ in range(num)]
@@ -430,7 +426,7 @@ class Poker(Room):
     def play(self, score: int = 0) -> int:
         """Plays one round of poker. Updates player_score and bot_score.
         Returns net points gained by the player (player_score - bot_score)."""
-        deck = self._create_deck()
+        deck = cards.create_deck()
         random.shuffle(deck)
 
         player_hand = self._deal_cards(deck, 3)
